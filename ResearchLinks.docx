@@ -3,8 +3,23 @@ https://www.healthline.com/health/social-media-addiction
 https://www.addictioncenter.com/behavioral-addictions/social-media-addiction/
 https://www.jeffersonhealth.org/your-health/living-well/the-addictiveness-of-social-media-how-teens-get-hooked
 
+Dark Patterns:
+(Access through Cincinnati public library) https://research.cincinnatilibrary.org/login?url=https://www.proquest.com/dissertations-theses/analysis-dark-patterns-ui-ux-elements-digital/docview/3171946230/se-2?accountid=39387
+
 Parental Control Software:
 https://www.spyrix.com/empowering-parents.php
 
 Legality of Waiving Rights:
 https://www.law.cornell.edu/wex/waive
+
+Other Similar Apps:
+https://apps.apple.com/us/app/focus-friend-by-hank-green/id6742278016
+
+Apple APIs we want access to:
+https://developer.apple.com/documentation/ManagedSettings
+https://developer.apple.com/documentation/deviceactivity/deviceactivityreport
+https://developer.apple.com/documentation/familycontrols/familyactivitypicker
+
+QT (User interface) in IOS links:
+https://doc.qt.io/qt-6/ios.html
+https://www.qt.io/blog/qt/.net-hosting-.net-code-in-a-qt-application
