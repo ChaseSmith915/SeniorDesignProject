@@ -27,3 +27,6 @@ https://developer.apple.com/documentation/familycontrols/familyactivitypicker
 QT (User interface) in IOS links:
 https://doc.qt.io/qt-6/ios.html
 https://www.qt.io/blog/qt/.net-hosting-.net-code-in-a-qt-application
+
+We can use Apple entitlements without requesting anything from apple
+https://www.reddit.com/r/iOSProgramming/comments/1jtojjk/has_anyone_requested_family_controls_entitlement/
