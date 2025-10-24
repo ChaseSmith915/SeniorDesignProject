@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- Custom Dialog Theme -->
+	<style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
+		<item name="android:windowBackground">@android:color/white</item>
+		<item name="android:windowMinWidthMajor">80%</item>
+		<item name="android:windowMinWidthMinor">80%</item>
+	</style>
+</resources>
