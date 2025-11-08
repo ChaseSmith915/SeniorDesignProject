@@ -5,24 +5,70 @@
 
     <ScrollView>
         <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
+            Padding="30,20"
+            Spacing="15">
+
+            <Label
+                Text="Android Usage Tracker Demo"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1"
+                HorizontalOptions="Center" />
+
             <Image
                 Source="dotnet_bot.png"
-                HeightRequest="185"
+                HeightRequest="150"
                 Aspect="AspectFit"
-                SemanticProperties.Description="dot net bot in a race car number eight" />
+                SemanticProperties.Description="dot net bot mascot" />
 
-            <Label
-                Text="Hello, World!"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
+            <BoxView HeightRequest="1" Color="LightGray" Margin="0, 10" />
 
+            <!-- STEP 1: Check Permissions -->
+            <Label 
+                Text="1. Verify Permissions" 
+                FontSize="18" 
+                FontAttributes="Bold" />
+            <Button
+                Text="Check &amp; Request Permissions"
+                Clicked="OnCheckPermissionsClicked"
+                HorizontalOptions="Fill" 
+                BackgroundColor="#2196F3"
+                TextColor="White"
+                SemanticProperties.Hint="Checks for Display Overlays and Usage Access permissions." />
+
+            <!-- STEP 2: Start Service -->
+            <Label 
+                Text="2. Start Tracking Service" 
+                FontSize="18" 
+                FontAttributes="Bold" />
+            <Button
+                Text="Start Monitoring Service"
+                Clicked="OnStartServiceClicked"
+                HorizontalOptions="Fill" 
+                BackgroundColor="#4CAF50"
+                TextColor="White"
+                SemanticProperties.Hint="Starts the Foreground Service to monitor apps." />
+
+            <!-- STEP 3: Stop Service -->
+            <Label 
+                Text="3. Stop Tracking Service" 
+                FontSize="18" 
+                FontAttributes="Bold" />
+            <Button
+                Text="Stop Monitoring Service"
+                Clicked="OnStopServiceClicked"
+                HorizontalOptions="Fill" 
+                BackgroundColor="#F44336"
+                TextColor="White"
+                SemanticProperties.Hint="Stops the Foreground Service." />
+
+            <BoxView HeightRequest="1" Color="LightGray" Margin="0, 10" />
+
+            <!-- Retaining old counter for demo -->
             <Label
-                Text="Welcome to &#10;.NET Multi-platform App UI"
+                Text="Demo Counter"
                 Style="{StaticResource SubHeadline}"
                 SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I" />
+                HorizontalOptions="Center" />
 
             <Button
                 x:Name="CounterBtn"
@@ -31,10 +77,6 @@
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Fill" />
 
-            <Label Text="App Intercept Toggle" FontSize="20" />
-            <Switch x:Name="InterceptSwitch" />
-            <Button x:Name="OpenAccessibilitySettingsButton" Text="Open Accessibility Settings" />
-            <Label Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility." FontSize="12"/>
         </VerticalStackLayout>
     </ScrollView>
 

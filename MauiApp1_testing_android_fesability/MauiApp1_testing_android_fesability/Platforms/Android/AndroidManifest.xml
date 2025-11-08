@@ -1,17 +1,90 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.companyname.mauiapp1_testing_android_fesability">
-	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:supportsRtl="true">
-		<service android:name="com.companyname.mauiapp1_testing_android_fesability.YouTubeInterceptorService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" android:exported="true" android:label="YouTube Interceptor" android:enabled="true">
-			<intent-filter>
-				<action android:name="android.accessibilityservice.AccessibilityService" />
-			</intent-filter>
-			<meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_service_config" />
-		</service>
-		<activity
-			android:name=".DialogActivity"
-			android:theme="@style/DialogTheme"
-			android:exported="true" />
-	</application>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	android:versionCode="1"
+	android:versionName="1.0">
+
+	<!-- 
+	  ==================================================================================
+	  == DEFAULT MAUI PERMISSIONS ==
+	  ================================================================================== 
+	-->
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+
+	<!-- 
+	  ==================================================================================
+	  == OUR NEW PERMISSIONS ==
+	  ================================================================================== 
+	-->
+
+	<!-- (Optional) Required if you're using foregroundServiceType="specialUse" on Android 14+ -->
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+	<!-- Required to run a foreground service -->
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+	<!-- Required for the notification on Android 13+ -->
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+	<!-- 
+	  Required for UsageStatsManager. 
+	  This is a "signature" permission, so you MUST request it manually.
+	-->
+	<uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+
+	<!-- 
+	  Required to show a popup over other apps. 
+	  This is a special permission you MUST request manually.
+	-->
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
+
+	<!-- 
+      ==================================================================================
+      == APPLICATION ==
+	  ================================================================================== 
+    -->
+	<application
+		android:allowBackup="true"
+		android:icon="@mipmap/appicon"
+		android:roundIcon="@mipmap/appicon_round"
+		android:supportsRtl="true"
+		android:label="MauiApp1"
+		android:theme="@style/Maui.SplashTheme">
+		<!-- !! IMPORTANT: Update 'android:label' to your app's name -->
+
+		<!-- 
+		  Register the Foreground Service.
+		  Note: "specialUse" is a good fit for this type of app monitoring.
+		  
+		  !! IMPORTANT: 
+		  The 'android:name' must match your C# class's full namespace.
+		  Change "MauiApp1" if your project namespace is different.
+		-->
+		<service
+			android:name="MauiApp1.Platforms.Android.UsageTrackingService"
+			android:enabled="true"
+			android:exported="false"
+			android:foregroundServiceType="specialUse">
+			<property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="This app monitors app usage to help you manage your time." />
+		</service>
+
+		<!-- 
+		  Register the "Popup" Activity.
+		  The theme makes it look like a dialog/popup.
+		  
+		  !! IMPORTANT: 
+		  The 'android:name' must also match your C# class's full namespace.
+		  Change "MauiApp1" if your project namespace is different.
+		-->
+		<activity
+			android:name="MauiApp1.Platforms.Android.PopupActivity"
+			android:enabled="true"
+			android:exported="false"
+			android:theme="@android:style/Theme.Translucent.NoTitleBar"
+			android:launchMode="singleTask"
+			android:taskAffinity="" />
+
+	</application>
 </manifest>

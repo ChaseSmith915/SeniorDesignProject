@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Runtime;
+using Android.Util;
 
 namespace MauiApp1_testing_android_fesability
 {
@@ -12,5 +13,5 @@ namespace MauiApp1_testing_android_fesability
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
-    }
+}
 }
