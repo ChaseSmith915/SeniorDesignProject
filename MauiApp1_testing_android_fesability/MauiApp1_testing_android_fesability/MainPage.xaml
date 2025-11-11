@@ -4,47 +4,50 @@
              x:Class="MauiApp1_testing_android_fesability.MainPage">
     <VerticalStackLayout
         Padding="30,0"
-        Spacing="25"
+        Spacing="25">
         <HorizontalStackLayout
-            Padding="30">
+            Padding="30"
+            Spacing="-20">
+            <Image
+                Source="dotnet_bot.png"
+                HeightRequest="60"
+                Aspect="AspectFit"
+                SemanticProperties.Description="Streak Image" />
+
+            <Label
+                x:Name="StreakNumLabel"
+                Text="## Days"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level2"
+                VerticalTextAlignment="Center"/>
         </HorizontalStackLayout>
         <ScrollView>
             <VerticalStackLayout
                 Padding="30,0"
                 Spacing="25">
-                <Image
-                    Source="dotnet_bot.png"
-                    HeightRequest="185"
-                    Aspect="AspectFit"
-                    SemanticProperties.Description="dot net bot in a race car number eight" />
+                <HorizontalStackLayout
+                    x:Name="AppTargetOne">
+                    <Label
+                        Text="App Intercept Toggle:"
+                        FontSize="20"
+                        VerticalTextAlignment="Center" />
 
-                <Label
-                    Text="Welcome to HourGuard!"
-                    Style="{StaticResource Headline}"
-                    SemanticProperties.HeadingLevel="Level1" />
+                    <Switch
+                        x:Name="AppTargetOneInterceptSwitch" />
+                </HorizontalStackLayout>
 
                 <Button
-                    x:Name="CounterBtn"
-                    Text="Click me" 
-                    SemanticProperties.Hint="Counts the number of times you click"
-                    Clicked="OnCounterClicked"
-                    HorizontalOptions="Fill" />
-
-                <Label
-                    Text="App Intercept Toggle"
-                    FontSize="20" />
-                
-                <Switch
-                    x:Name="InterceptSwitch" />
-                
-                <Button
-                    x:Name="OpenAccessibilitySettingsButton"
-                    Text="Open Accessibility Settings" />
-                
-                <Label
-                    Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility."
-                    FontSize="12"/>
+                    x:Name="AddAppButton"
+                    Text="Target a New App +" />
             </VerticalStackLayout>
         </ScrollView>
+
+        <Button
+            x:Name="OpenAccessibilitySettingsButton"
+            Text="Open Accessibility Settings" />
+
+        <Label
+            Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility."
+            FontSize="12"/> 
     </VerticalStackLayout>
 </ContentPage>
