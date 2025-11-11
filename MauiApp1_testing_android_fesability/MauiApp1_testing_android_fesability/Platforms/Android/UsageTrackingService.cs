@@ -9,11 +9,12 @@ using System.Linq; // Required for OrderByDescending and Any()
 
 // FIX: Added this using statement to resolve UsageStatsManager and UsageStatsInterval
 using Android.App.Usage;
+using Android.Content.PM; // ADDED: Required for ForegroundServiceType on Android 14 (API 34)
 
 // FIXED: Namespace updated to match your project's root namespace
 namespace MauiApp1_testing_android_fesability.Platforms.Android
 {
-    [Service]
+    [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
     public class UsageTrackingService : Service
     {
         private Timer _timer;
@@ -45,7 +46,17 @@ namespace MauiApp1_testing_android_fesability.Platforms.Android
                 .Build();
 
             // 3. Start the service in the foreground
-            StartForeground(NOTIFICATION_ID, notification);
+            // FIX: On API 34 (Target SDK 34), StartForeground MUST include the ForegroundServiceType.
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q) // Q is API 29, when this overload was introduced
+            {
+                StartForeground(NOTIFICATION_ID, notification, ForegroundService.TypeDataSync);
+            }
+            else
+            {
+                // Fallback for older Android versions
+                StartForeground(NOTIFICATION_ID, notification);
+            }
+
 
             // 4. Start the polling timer
             // We check every 3 seconds. Adjust as needed for battery vs. responsiveness.

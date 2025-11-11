@@ -1,12 +1,10 @@
-﻿
-using Microsoft.Maui.Controls;
+﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Hosting;
 
 #if ANDROID
 using Android.Content;
 using Android.Util; // For Log
 #endif
-
 
 namespace MauiApp1_testing_android_fesability
 {
@@ -18,6 +16,7 @@ namespace MauiApp1_testing_android_fesability
         {
             InitializeComponent();
         }
+
         private void OnCounterClicked(object sender, EventArgs e)
         {
             count++;
@@ -48,8 +47,7 @@ namespace MauiApp1_testing_android_fesability
 #if ANDROID
             Log.Debug("MainPage", "Start Service button clicked.");
             var context = Android.App.Application.Context;
-            // FIXED: Using relative path "Platforms.Android.UsageTrackingService"
-            var serviceIntent = new Android.Content.Intent(context, typeof(Platforms.Android.UsageTrackingService));
+            var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
             context.StartForegroundService(serviceIntent);
 #endif
         }
@@ -59,15 +57,12 @@ namespace MauiApp1_testing_android_fesability
 #if ANDROID
             Log.Debug("MainPage", "Stop Service button clicked.");
             var context = Android.App.Application.Context;
-            // FIXED: Using relative path "Platforms.Android.UsageTrackingService"
-            var serviceIntent = new Android.Content.Intent(context, typeof(Platforms.Android.UsageTrackingService));
+            var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
             context.StopService(serviceIntent);
 #endif
         }
 
-
         // --- PERMISSION CHECKING LOGIC ---
-
         private async Task<bool> CheckAndRequestPermissions()
         {
             bool allGranted = true;
@@ -75,7 +70,7 @@ namespace MauiApp1_testing_android_fesability
 #if ANDROID
             var context = Android.App.Application.Context;
 
-            // 1. Check/Request Notification Permission (Android 13+)
+            // 1. Notifications (Android 13+)
             if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Tiramisu)
             {
                 var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
@@ -86,35 +81,34 @@ namespace MauiApp1_testing_android_fesability
                 if (status != PermissionStatus.Granted) allGranted = false;
             }
 
-            // 2. Check/Request "Display over other apps" (SYSTEM_ALERT_WINDOW)
+            // 2. Overlay permission
             if (!Android.Provider.Settings.CanDrawOverlays(context))
             {
                 allGranted = false;
                 await DisplayAlert("Permission Needed", "Please grant 'Display over other apps' permission.", "Go to Settings");
-                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageOverlayPermission,
-                                                        Android.Net.Uri.Parse("package:" + context.PackageName));
-                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                var intent = new Intent(Android.Provider.Settings.ActionManageOverlayPermission,
+                                        Android.Net.Uri.Parse("package:" + context.PackageName));
+                intent.AddFlags(ActivityFlags.NewTask);
                 context.StartActivity(intent);
             }
 
-            // 3. Check/Request "Usage Access" (PACKAGE_USAGE_STATS)
-            var appOps = (Android.App.AppOpsManager)context.GetSystemService(Android.Content.Context.AppOpsService);
-            var mode = appOps.CheckOpNoThrow(Android.App.AppOpsManager.OpstrGetUsageStats, Android.OS.Process.MyUid(), context.PackageName);
+            // 3. Usage access
+            var appOps = (Android.App.AppOpsManager)context.GetSystemService(Context.AppOpsService);
+            var mode = appOps.CheckOpNoThrow(Android.App.AppOpsManager.OpstrGetUsageStats,
+                                             Android.OS.Process.MyUid(), context.PackageName);
 
             if (mode != Android.App.AppOpsManagerMode.Allowed)
             {
                 allGranted = false;
                 await DisplayAlert("Permission Needed", "Please grant 'Usage data access' permission.", "Go to Settings");
-                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionUsageAccessSettings);
-                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                var intent = new Intent(Android.Provider.Settings.ActionUsageAccessSettings);
+                intent.AddFlags(ActivityFlags.NewTask);
                 context.StartActivity(intent);
             }
 #endif
 
-            // Await a short delay just to give the user time to potentially see the alerts
             await Task.Delay(100);
             return allGranted;
         }
     }
-
 }
