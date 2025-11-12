@@ -1,4 +1,6 @@
 ﻿using Microsoft.Maui.Controls;
+using Android.Content.PM;
+
 #if ANDROID
 using Android.Content;
 #endif
@@ -42,6 +44,11 @@ namespace MauiApp1_testing_android_fesability
                 Intent intent = new Intent(Android.Provider.Settings.ActionAccessibilitySettings);
                 intent.SetFlags(ActivityFlags.NewTask);
                 Android.App.Application.Context.StartActivity(intent);
+            };
+
+            AddAppButton.Clicked += (s, e) =>
+            {
+                Navigation.PushAsync(new TargetApps());
             };
 #endif
         }
