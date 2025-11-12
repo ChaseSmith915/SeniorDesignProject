@@ -6,17 +6,17 @@
         Padding="30,0"
         Spacing="25">
         <HorizontalStackLayout
-            Padding="30"
-            Spacing="-20">
+            Padding="30">
             <Image
-                Source="dotnet_bot.png"
+                Source="fire.png"
                 HeightRequest="60"
+                WidthRequest="60"
                 Aspect="AspectFit"
                 SemanticProperties.Description="Streak Image" />
 
             <Label
                 x:Name="StreakNumLabel"
-                Text="## Days"
+                Text="49 Days"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level2"
                 VerticalTextAlignment="Center"/>

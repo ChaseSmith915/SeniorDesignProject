@@ -11,8 +11,6 @@ namespace MauiApp1_testing_android_fesability
         const string PREF_KEY_ENABLED = "intercept_enabled";
 #endif
 
-        int count = 0;
-
         public MainPage()
         {
             InitializeComponent();
@@ -23,9 +21,9 @@ namespace MauiApp1_testing_android_fesability
 
             var prefs = Android.App.Application.Context.GetSharedPreferences("APP_PREFS", FileCreationMode.Private);
             bool enabled = prefs.GetBoolean(PREF_KEY_ENABLED, false);
-            InterceptSwitch.IsToggled = enabled;
+            AppTargetOneInterceptSwitch.IsToggled = enabled;
 
-            InterceptSwitch.Toggled += (s, e) =>
+            AppTargetOneInterceptSwitch.Toggled += (s, e) =>
             {
                 var editor = prefs.Edit();
                 editor.PutBoolean(PREF_KEY_ENABLED, e.Value);
