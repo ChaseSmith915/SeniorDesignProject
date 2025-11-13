@@ -19,7 +19,7 @@ namespace MauiApp1_testing_android_fesability.Platforms.Android
     {
         private Timer _timer;
         private string _lastForegroundApp = string.Empty;
-        private const string _youtubePackageName = "com.google.android.youtube";
+        private const string _targetedPackageName = "com.google.android.deskclock";
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const int NOTIFICATION_ID = 1001;
@@ -109,10 +109,10 @@ namespace MauiApp1_testing_android_fesability.Platforms.Android
                         Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {_lastForegroundApp}"); // Enhanced Log
 
                         // TODO: Make this package name check modular
-                        if (currentForegroundApp == _youtubePackageName)
+                        if (currentForegroundApp == _targetedPackageName)
                         {
-                            Log.Debug(TAG, "YOUTUBE MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
-                            // YouTube was opened! Show the popup.
+                            Log.Debug(TAG, "CLOCK APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
+                            // Clock app was opened! Show the popup.
                             ShowPopup();
                         }
 

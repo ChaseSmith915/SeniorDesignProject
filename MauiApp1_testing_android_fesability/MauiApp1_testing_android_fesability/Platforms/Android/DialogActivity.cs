@@ -69,7 +69,7 @@ namespace MauiApp1_testing_android_fesability
             var tv = new TextView(this)
             {
                 TextSize = 18f,
-                Text = "Do you want to continue into YouTube?\n You must complete a task first."
+                Text = "Do you want to continue into Clock app?\n You must complete a task first."
             };
             layout.AddView(tv);
 
@@ -133,7 +133,7 @@ namespace MauiApp1_testing_android_fesability
             // Buttons layout
             var buttonLayout = new LinearLayout(this) { Orientation = Orientation.Horizontal };
 
-            var yesBtn = new Android.Widget.Button(this) { Text = "Yes open youtube" };
+            var yesBtn = new Android.Widget.Button(this) { Text = "Yes open clock app" };
             var noBtn = new Android.Widget.Button(this) { Text = "No go away" };
 
             yesBtn.Enabled = false;
@@ -166,13 +166,13 @@ namespace MauiApp1_testing_android_fesability
 
             yesBtn.Click += (s, e) =>
             {
-                // Just finish and let YouTube remain in foreground
+                // Just finish and let clock app remain in foreground
                 FinishAndRemoveTask();
             };
 
             noBtn.Click += (s, e) =>
             {
-                // Send user to Home, backgrounding YouTube
+                // Send user to Home, backgrounding clock app
                 Intent intent = new Intent(Intent.ActionMain);
                 intent.AddCategory(Intent.CategoryHome);
                 intent.SetFlags(ActivityFlags.NewTask);
