@@ -134,7 +134,7 @@ namespace MauiApp1_testing_android_fesability.Platforms.Android
         private void ShowPopup()
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
-            Intent popupIntent = new Intent(this, typeof(PopupActivity));
+            Intent popupIntent = new Intent(this, typeof(DialogActivity));
             popupIntent.AddFlags(ActivityFlags.NewTask);
             StartActivity(popupIntent);
         }
