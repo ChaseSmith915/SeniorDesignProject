@@ -24,16 +24,17 @@
         <ScrollView>
             <VerticalStackLayout
                 Padding="30,0"
-                Spacing="25">
+                Spacing="25"
+                x:Name="TargetAppsList">
                 <HorizontalStackLayout
-                    x:Name="AppTargetOne">
+                    x:Name="AppTarget1">
                     <Label
                         Text="App Intercept Toggle:"
                         FontSize="20"
                         VerticalTextAlignment="Center" />
 
                     <Switch
-                        x:Name="AppTargetOneInterceptSwitch" />
+                        x:Name="AppTarget1InterceptSwitch" />
                 </HorizontalStackLayout>
 
                 <Button

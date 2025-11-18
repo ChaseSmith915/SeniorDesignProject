@@ -14,10 +14,14 @@ namespace MauiApp1_testing_android_fesability
 {
     public partial class TargetApps : ContentPage
     {
-        public TargetApps()
+        private MainPage mainPageObj;
+
+        public TargetApps(MainPage mainPage)
         {
             InitializeComponent();
             initializeAppList();
+
+            mainPageObj = mainPage;
         }
 
         private void initializeAppList()
@@ -41,6 +45,9 @@ namespace MauiApp1_testing_android_fesability
         }
         private void TargetNewApp(object sender, EventArgs e)
         {
+            Button senderButton = (Button)sender;
+
+            mainPageObj.addTargetedApp(senderButton.Text);
             Navigation.PopAsync();
         }
     }
