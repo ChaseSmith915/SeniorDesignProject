@@ -2,10 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp1_testing_android_fesability.MainPage">
-    <VerticalStackLayout
-        Padding="30,0"
-        Spacing="25">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <HorizontalStackLayout
+            Grid.Row="0"
             Padding="30">
             <Image
                 Source="fire.png"
@@ -21,34 +26,20 @@
                 SemanticProperties.HeadingLevel="Level2"
                 VerticalTextAlignment="Center"/>
         </HorizontalStackLayout>
-        <ScrollView>
+
+        <ScrollView Grid.Row="1">
             <VerticalStackLayout
-                Padding="30,0"
-                Spacing="25"
                 x:Name="TargetAppsList">
-                <HorizontalStackLayout
-                    x:Name="AppTarget1">
-                    <Label
-                        Text="App Intercept Toggle:"
-                        FontSize="20"
-                        VerticalTextAlignment="Center" />
-
-                    <Switch
-                        x:Name="AppTarget1InterceptSwitch" />
-                </HorizontalStackLayout>
-
                 <Button
                     x:Name="AddAppButton"
-                    Text="Target a New App +" />
+                    Text="Target a New App +"/>
             </VerticalStackLayout>
         </ScrollView>
 
         <Button
+            Grid.Row="2"
             x:Name="OpenAccessibilitySettingsButton"
-            Text="Open Accessibility Settings" />
-
-        <Label
-            Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility."
-            FontSize="12"/> 
-    </VerticalStackLayout>
+            Text="Open Accessibility Settings"
+            ToolTipProperties.Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility."/>
+    </Grid>
 </ContentPage>
