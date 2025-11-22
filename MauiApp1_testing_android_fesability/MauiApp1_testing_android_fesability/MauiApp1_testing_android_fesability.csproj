@@ -69,6 +69,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="PermissionsSetUp.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="TargetApps.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

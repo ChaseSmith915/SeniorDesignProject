@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="MauiApp1_testing_android_fesability.PermissionsSetUp">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30"
+            Spacing="10"
+            x:Name="AppStack">
+            <!-- STEP 1: Check Permissions -->
+            <Label 
+                Text="1. Verify Permissions" 
+                FontSize="18" 
+                FontAttributes="Bold" />
+            <Button
+                Text="Check &amp; Request Permissions"
+                Clicked="OnCheckPermissionsClicked"
+                HorizontalOptions="Fill" 
+                BackgroundColor="#2196F3"
+                TextColor="White"
+                SemanticProperties.Hint="Checks for Display Overlays and Usage Access permissions." />
+
+            <!-- STEP 2: Start Service -->
+            <Label 
+                Text="2. Start Tracking Service" 
+                FontSize="18" 
+                FontAttributes="Bold" />
+            <Button
+                Text="Start Monitoring Service"
+                Clicked="OnStartServiceClicked"
+                HorizontalOptions="Fill" 
+                BackgroundColor="#4CAF50"
+                TextColor="White"
+                SemanticProperties.Hint="Starts the Foreground Service to monitor apps." />
+
+            <!-- STEP 3: Stop Service -->
+            <Label 
+                Text="3. Stop Tracking Service" 
+                FontSize="18" 
+                FontAttributes="Bold" />
+            <Button
+                Text="Stop Monitoring Service"
+                Clicked="OnStopServiceClicked"
+                HorizontalOptions="Fill" 
+                BackgroundColor="#F44336"
+                TextColor="White"
+                SemanticProperties.Hint="Stops the Foreground Service." />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

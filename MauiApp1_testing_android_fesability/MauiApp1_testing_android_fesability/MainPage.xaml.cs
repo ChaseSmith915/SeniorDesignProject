@@ -20,9 +20,6 @@ namespace MauiApp1_testing_android_fesability
 #if ANDROID
         const string PREF_KEY_ENABLED = "intercept_enabled";
 #endif
-        // This tracks the number of target rows and incriments as more target rows are added.
-        private int currentTargetNumber = 0;
-
         public MainPage()
         {
             InitializeComponent();
@@ -52,9 +49,10 @@ namespace MauiApp1_testing_android_fesability
 
             OpenAccessibilitySettingsButton.Clicked += (s, e) =>
             {
-                Intent intent = new Intent(Android.Provider.Settings.ActionAccessibilitySettings);
-                intent.SetFlags(ActivityFlags.NewTask);
-                Android.App.Application.Context.StartActivity(intent);
+                //Intent intent = new Intent(Android.Provider.Settings.ActionAccessibilitySettings);
+                //intent.SetFlags(ActivityFlags.NewTask);
+                //Android.App.Application.Context.StartActivity(intent);
+                Navigation.PushAsync(new PermissionsSetUp());
             };
 
             AddAppButton.Clicked += (s, e) =>
@@ -78,7 +76,7 @@ namespace MauiApp1_testing_android_fesability
 
             Label newTargetLabel = new Label
             {
-                FontSize = 20,
+                FontSize = 16,
                 Text = $"{appName}:",
                 VerticalTextAlignment = TextAlignment.Center
             };
