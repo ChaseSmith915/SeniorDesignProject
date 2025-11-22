@@ -38,8 +38,8 @@
 
         <Button
             Grid.Row="2"
-            x:Name="OpenAccessibilitySettingsButton"
-            Text="Open Accessibility Settings"
+            x:Name="EnablePermissionsButton"
+            Text="Enable Permissions"
             ToolTipProperties.Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility."/>
     </Grid>
 </ContentPage>

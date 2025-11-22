@@ -33,8 +33,8 @@ namespace MauiApp1_testing_android_fesability
 #if ANDROID
             Log.Debug("MainPage", "Start Service button clicked.");
             var context = Android.App.Application.Context;
-            //var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
-            //context.StartForegroundService(serviceIntent);
+            var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
+            context.StartForegroundService(serviceIntent);
 #endif
         }
 
@@ -43,8 +43,8 @@ namespace MauiApp1_testing_android_fesability
 #if ANDROID
             Log.Debug("MainPage", "Stop Service button clicked.");
             var context = Android.App.Application.Context;
-            //var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
-            //context.StopService(serviceIntent);
+            var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
+            context.StopService(serviceIntent);
 #endif
         }
 
