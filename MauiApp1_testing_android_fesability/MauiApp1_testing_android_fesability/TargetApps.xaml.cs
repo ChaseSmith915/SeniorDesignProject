@@ -33,7 +33,7 @@ namespace MauiApp1_testing_android_fesability
         {
             PackageManager pm = Android.App.Application.Context.PackageManager;
 
-            List<ApplicationInfo> installedApps = pm.GetInstalledApplications(PackageInfoFlags.MetaData)
+            List<ApplicationInfo> installedApps = pm.GetInstalledApplications(PackageInfoFlags.MatchAll)
                 .OrderBy(app => app.LoadLabel(pm)?.ToString())
                 .ToList();
 
@@ -85,7 +85,7 @@ namespace MauiApp1_testing_android_fesability
 
             if (String.IsNullOrEmpty(appName)) { shouldNotDisplay = true; }
             else if (appName.Equals("HourGuard", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
-            else if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
+            //else if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
             else { shouldNotDisplay = false; }
 
             return shouldNotDisplay;
@@ -104,7 +104,7 @@ namespace MauiApp1_testing_android_fesability
                 },
                 RowDefinitions =
                 {
-                    new RowDefinition { Height = new GridLength(50) }
+                    new RowDefinition { Height = GridLength.Auto }
                 },
                 Margin = new Thickness(0, 5),
                 Padding = new Thickness(10, 5)
