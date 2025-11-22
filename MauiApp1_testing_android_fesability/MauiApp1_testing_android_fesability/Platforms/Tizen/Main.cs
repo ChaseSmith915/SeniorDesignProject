@@ -2,7 +2,7 @@ using System;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     internal class Program : MauiApplication
     {

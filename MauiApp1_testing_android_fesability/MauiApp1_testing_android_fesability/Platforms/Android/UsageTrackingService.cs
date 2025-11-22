@@ -12,7 +12,7 @@ using Android.App.Usage;
 using Android.Content.PM; // ADDED: Required for ForegroundServiceType on Android 14 (API 34)
 
 // FIXED: Namespace updated to match your project's root namespace
-namespace MauiApp1_testing_android_fesability.Platforms.Android
+namespace HourGuard.Platforms.Android
 {
     [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
     public class UsageTrackingService : Service

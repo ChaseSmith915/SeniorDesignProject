@@ -2,7 +2,7 @@
 using Android.Runtime;
 using Android.Util;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     [Application]
     public class MainApplication : MauiApplication

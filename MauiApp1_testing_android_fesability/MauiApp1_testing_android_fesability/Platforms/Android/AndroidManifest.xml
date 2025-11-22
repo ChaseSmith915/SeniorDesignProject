@@ -1,36 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1"
-    android:versionName="1.0">
-
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0">
 	<!-- Default MAUI permissions -->
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
-
 	<!-- Foreground service + notifications -->
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-
 	<!-- Usage stats + overlay -->
 	<uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
-	<application
-        android:allowBackup="true"
-        android:icon="@mipmap/appicon"
-        android:roundIcon="@mipmap/appicon_round"
-        android:supportsRtl="true"
-        android:label="MauiApp1_testing_android_fesability"
-        android:theme="@style/Maui.SplashTheme">
-
+	<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:supportsRtl="true" android:label="HourGuard" android:theme="@style/Maui.SplashTheme">
 		<!-- Popup Activity -->
-		<activity
-            android:name="MauiApp1_testing_android_fesability.Platforms.Android.PopupActivity"
-            android:enabled="true"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:launchMode="singleTask"
-            android:taskAffinity="" />
+		<activity android:name="HourGuard.Platforms.Android.PopupActivity" android:enabled="true" android:exported="false" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:launchMode="singleTask" android:taskAffinity="" />
 	</application>
 </manifest>

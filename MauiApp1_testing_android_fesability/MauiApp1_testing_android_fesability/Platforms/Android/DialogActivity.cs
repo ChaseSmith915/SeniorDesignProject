@@ -4,7 +4,7 @@ using Android.Content;
 using Android.Widget;
 using Android.Views;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     [Activity(Label = "Confirm", Theme = "@style/DialogTheme")]
     public class DialogActivity : Activity

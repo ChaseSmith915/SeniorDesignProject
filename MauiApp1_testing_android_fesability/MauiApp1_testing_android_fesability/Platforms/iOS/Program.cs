@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     public class Program
     {

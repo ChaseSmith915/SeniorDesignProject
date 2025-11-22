@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Maui.ApplicationModel; // for FileSystem.OpenAppPackageFileAsync
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     public class Question
     {

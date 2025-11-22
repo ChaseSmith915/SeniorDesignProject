@@ -9,7 +9,7 @@ using System.Collections;
 using Android.Content;
 #endif
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     public partial class MainPage : ContentPage
     {

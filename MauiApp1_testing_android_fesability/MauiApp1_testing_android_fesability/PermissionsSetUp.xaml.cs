@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     public partial class PermissionsSetUp : ContentPage
     {

@@ -3,7 +3,7 @@ using Android.Content;
 using Android.OS;
 using Android.Widget;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     [Activity(Label = "PopupActivity")]
     public class PopupActivity : Activity

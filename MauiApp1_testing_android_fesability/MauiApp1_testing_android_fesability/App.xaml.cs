@@ -1,4 +1,4 @@
-﻿namespace MauiApp1_testing_android_fesability
+﻿namespace HourGuard
 {
     public partial class App : Application
     {

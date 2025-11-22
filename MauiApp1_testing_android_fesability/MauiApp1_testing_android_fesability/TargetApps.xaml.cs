@@ -14,7 +14,7 @@ using Android.Graphics;
 using Android.Content;
 #endif
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     public partial class TargetApps : ContentPage
     {
@@ -85,7 +85,7 @@ namespace MauiApp1_testing_android_fesability
 
             if (String.IsNullOrEmpty(appName)) { shouldNotDisplay = true; }
             else if (appName.Equals("HourGuard", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
-            //else if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
+            else if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
             else { shouldNotDisplay = false; }
 
             return shouldNotDisplay;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     public static class MauiProgram
     {

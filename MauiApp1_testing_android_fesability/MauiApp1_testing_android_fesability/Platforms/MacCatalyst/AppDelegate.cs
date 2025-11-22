@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace MauiApp1_testing_android_fesability
+namespace HourGuard
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate
