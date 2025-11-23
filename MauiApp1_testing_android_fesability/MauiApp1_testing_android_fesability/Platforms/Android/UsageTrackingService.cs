@@ -17,9 +17,10 @@ namespace HourGuard.Platforms.Android
     [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
     public class UsageTrackingService : Service
     {
+        private ISharedPreferences preferances = global::Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+
         private Timer _timer;
         private string _lastForegroundApp = string.Empty;
-        private const string _targetedPackageName = "com.google.android.deskclock";
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const int NOTIFICATION_ID = 1001;
@@ -108,11 +109,11 @@ namespace HourGuard.Platforms.Android
                     {
                         Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {_lastForegroundApp}"); // Enhanced Log
 
-                        // TODO: Make this package name check modular
-                        if (currentForegroundApp == _targetedPackageName)
+                        // Gets if restrictions are turned on for this app or retuns false if not found
+                        if (preferances.GetBoolean(currentForegroundApp, false))
                         {
-                            Log.Debug(TAG, "CLOCK APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
-                            // Clock app was opened! Show the popup.
+                            Log.Debug(TAG, "APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
+                            // App was opened! Show the popup.
                             ShowPopup();
                         }
 

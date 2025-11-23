@@ -69,7 +69,7 @@ namespace HourGuard
             var tv = new TextView(this)
             {
                 TextSize = 18f,
-                Text = "Do you want to continue into Clock app?\n You must complete a task first."
+                Text = "Do you want to continue into this app?\n You must complete a task first."
             };
             layout.AddView(tv);
 
@@ -133,7 +133,7 @@ namespace HourGuard
             // Buttons layout
             var buttonLayout = new LinearLayout(this) { Orientation = Orientation.Horizontal };
 
-            var yesBtn = new Android.Widget.Button(this) { Text = "Yes open clock app" };
+            var yesBtn = new Android.Widget.Button(this) { Text = "Yes open app" };
             var noBtn = new Android.Widget.Button(this) { Text = "No go away" };
 
             yesBtn.Enabled = false;
