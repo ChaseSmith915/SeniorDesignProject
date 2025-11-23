@@ -20,12 +20,17 @@ namespace HourGuard
     {
         private MainPage mainPageObj;
 
+        private ISharedPreferences preferances = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+
+        private String[] targetedApps;
+
         public TargetApps(MainPage mainPage)
         {
+            this.mainPageObj = mainPage;
+            this.targetedApps = preferances.All.Keys.ToArray();
+
             InitializeComponent();
             initializeAppList();
-
-            mainPageObj = mainPage;
         }
 
         // Initialize the list of installed apps as buttons
@@ -40,14 +45,15 @@ namespace HourGuard
             foreach (ApplicationInfo appInfo in installedApps)
             {
                 String appName = appInfo.LoadLabel(pm)?.ToString();
+                String packageName = appInfo.PackageName;
                 ImageSource appIcon = GetAppIcon(appInfo);
 
-                if (shouldNotDisplayApp(appName))
+                if (shouldNotDisplayApp(appName, packageName))
                 {
                     continue;
                 }
 
-                AppStack.Add(createAppRow(appName, appIcon));
+                AppStack.Add(createAppRow(appName, packageName, appIcon));
             }
         }
 
@@ -79,20 +85,21 @@ namespace HourGuard
         }
 
         // Returns true if the app should NOT be displayed in the list
-        private bool shouldNotDisplayApp(String appName)
+        private bool shouldNotDisplayApp(String appName, String packageName)
         {
             bool shouldNotDisplay;
 
             if (String.IsNullOrEmpty(appName)) { shouldNotDisplay = true; }
             else if (appName.Equals("HourGuard", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
             else if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
+            else if (targetedApps.Contains(packageName)) { shouldNotDisplay = true; }
             else { shouldNotDisplay = false; }
 
             return shouldNotDisplay;
         }
 
         // Creates a row of the listed apps with the icon, name, and a select button
-        private Grid createAppRow(String appName, ImageSource appIcon)
+        private Grid createAppRow(String appName, String packageName, ImageSource appIcon)
         {
             Grid appRow = new Grid
             {
@@ -129,10 +136,9 @@ namespace HourGuard
             {
                 Text = "Target app",
                 HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                ClassId = appName
+                VerticalOptions = LayoutOptions.Center
             };
-            selectButton.Clicked += TargetNewApp;
+            selectButton.Clicked += (s, e) => TargetNewApp(s, e, appName, packageName);
 
             appRow.Add(appImage, 0, 0);
             appRow.Add(appLabel, 1, 0);
@@ -142,11 +148,11 @@ namespace HourGuard
         }
 
         // When an app button is clicked, add it to the targeted apps list and return to main page
-        private void TargetNewApp(object sender, EventArgs e)
+        private void TargetNewApp(object sender, EventArgs e, String appName, String packageName)
         {
-            Button senderButton = (Button)sender;
+            this.preferances.Edit().PutBoolean(packageName, true).Apply();
 
-            mainPageObj.addTargetedApp(senderButton.ClassId);
+            this.mainPageObj.addTargetedApp(appName, packageName);
             Navigation.PopAsync();
         }
     }

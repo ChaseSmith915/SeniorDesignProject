@@ -1,53 +1,22 @@
-﻿using Microsoft.Maui.Controls;
-using Android.Content.PM;
-using System.Security.Cryptography.X509Certificates;
-using AndroidX.AppCompat.Widget;
-using Android.Telephony;
-using System.Collections;
-
-#if ANDROID
+﻿#if ANDROID
 using Android.Content;
+using Android.Content.PM;
 #endif
 
 namespace HourGuard
 {
     public partial class MainPage : ContentPage
     {
-#if ANDROID
-        const string PREF_KEY_ENABLED = "intercept_enabled";
-#endif
+
+        private ISharedPreferences preferances = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+
         public MainPage()
         {
             InitializeComponent();
-            addTargetedApp("App Intercept");
-
-#if ANDROID
-            // These using directives are only valid for Android
-
-
-            //var prefs = Android.App.Application.Context.GetSharedPreferences("APP_PREFS", FileCreationMode.Private);
-            //bool enabled = prefs.GetBoolean(PREF_KEY_ENABLED, false);
-            //AppTarget1InterceptSwitch.IsToggled = enabled;
-
-            //AppTarget1InterceptSwitch.Toggled += (s, e) =>
-            //{
-            //    var editor = prefs.Edit();
-            //    editor.PutBoolean(PREF_KEY_ENABLED, e.Value);
-            //    editor.Apply();
-
-            //    if (e.Value)
-            //    {
-            //        DisplayAlert("Enable Service",
-            //            "Make sure the Accessibility service for this app is enabled in Settings → Accessibility.",
-            //            "OK");
-            //    }
-            //};
+            getTargetedAppsFromPreferances();
 
             EnablePermissionsButton.Clicked += (s, e) =>
             {
-                //Intent intent = new Intent(Android.Provider.Settings.ActionAccessibilitySettings);
-                //intent.SetFlags(ActivityFlags.NewTask);
-                //Android.App.Application.Context.StartActivity(intent);
                 Navigation.PushAsync(new PermissionsSetUp());
             };
 
@@ -55,10 +24,44 @@ namespace HourGuard
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
-#endif
         }
 
-        public void addTargetedApp(String appName)
+        private void getTargetedAppsFromPreferances()
+        {
+            IDictionary<string, object> allEntries = preferances.All;
+            foreach (KeyValuePair<string, object> entry in allEntries)
+            {
+                string packageName = entry.Key;
+                bool isTargeted = (bool)entry.Value;
+
+                string appname = getAppnameFromPackage(packageName);
+
+                if (!string.IsNullOrEmpty(appname))
+                {
+                    addTargetedApp(appname, packageName, isTargeted);
+                }
+            }
+        }
+
+        private string getAppnameFromPackage(string packageName)
+        {
+            string appName = "";
+            PackageManager pm = Android.App.Application.Context.PackageManager;
+
+            try
+            {
+                ApplicationInfo appInfo = pm.GetApplicationInfo(packageName, 0);
+                appName = pm.GetApplicationLabel(appInfo);
+            }
+            catch (PackageManager.NameNotFoundException)
+            {
+                // Package does not exist
+            }
+
+            return appName;
+        }
+
+        public void addTargetedApp(String appName, String packageName, Boolean startEnabled = true)
         {
             Grid newTargetLine = new Grid
             {
@@ -79,14 +82,28 @@ namespace HourGuard
 
             Switch newTargetSwitch = new Switch
             {
+                IsToggled = startEnabled,
                 HorizontalOptions = LayoutOptions.End,
-                VerticalOptions = LayoutOptions.Center
+                VerticalOptions = LayoutOptions.Center,
+                ClassId = packageName
             };
+
+            newTargetSwitch.Toggled += onTargetToggled;
 
             newTargetLine.Add(newTargetLabel, 0, 0);
             newTargetLine.Add(newTargetSwitch, 1, 0);
 
             TargetAppsList.Children.Insert(TargetAppsList.Children.Count - 1, newTargetLine);
+        }
+
+        private void onTargetToggled(object sender, ToggledEventArgs e)
+        {
+            Switch toggledSwitch = (Switch)sender;
+            string packageName = toggledSwitch.ClassId;
+
+            ISharedPreferencesEditor prefsEditor = this.preferances.Edit();
+
+            prefsEditor.PutBoolean(packageName, e.Value).Apply();
         }
     }
 }
