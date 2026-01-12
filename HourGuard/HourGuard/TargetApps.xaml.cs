@@ -18,23 +18,22 @@ namespace HourGuard
 {
     public partial class TargetApps : ContentPage
     {
-        private MainPage mainPageObj;
+        private MainPage mainPage;
+        private ISharedPreferences preferences = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
 
-        private ISharedPreferences preferances = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
-
-        private String[] targetedApps;
+        private string[] targetedApps;
 
         public TargetApps(MainPage mainPage)
         {
-            this.mainPageObj = mainPage;
-            this.targetedApps = preferances.All.Keys.ToArray();
+            this.mainPage = mainPage;
+            this.targetedApps = preferences.All.Keys.ToArray();
 
             InitializeComponent();
-            initializeAppList();
+            InitializeAppList();
         }
 
         // Initialize the list of installed apps as buttons
-        private void initializeAppList()
+        private void InitializeAppList()
         {
             PackageManager pm = Android.App.Application.Context.PackageManager;
 
@@ -44,16 +43,16 @@ namespace HourGuard
 
             foreach (ApplicationInfo appInfo in installedApps)
             {
-                String appName = appInfo.LoadLabel(pm)?.ToString();
-                String packageName = appInfo.PackageName;
+                string appName = appInfo.LoadLabel(pm)?.ToString();
+                string packageName = appInfo.PackageName;
                 ImageSource appIcon = GetAppIcon(appInfo);
 
-                if (shouldNotDisplayApp(appName, packageName))
+                if (ShouldNotDisplayApp(appName, packageName))
                 {
                     continue;
                 }
 
-                AppStack.Add(createAppRow(appName, packageName, appIcon));
+                AppStack.Add(CreateAppRow(appName, packageName, appIcon));
             }
         }
 
@@ -85,21 +84,17 @@ namespace HourGuard
         }
 
         // Returns true if the app should NOT be displayed in the list
-        private bool shouldNotDisplayApp(String appName, String packageName)
+        private bool ShouldNotDisplayApp(string appName, string packageName)
         {
-            bool shouldNotDisplay;
-
-            if (String.IsNullOrEmpty(appName)) { shouldNotDisplay = true; }
-            else if (appName.Equals("HourGuard", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
-            else if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) { shouldNotDisplay = true; }
-            else if (targetedApps.Contains(packageName)) { shouldNotDisplay = true; }
-            else { shouldNotDisplay = false; }
-
-            return shouldNotDisplay;
+            if (string.IsNullOrEmpty(appName)) return true;
+            if (appName.Equals("HourGuard", StringComparison.OrdinalIgnoreCase)) return true;
+            if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) return true;
+            if (targetedApps.Contains(packageName)) return true;
+            return false;
         }
 
         // Creates a row of the listed apps with the icon, name, and a select button
-        private Grid createAppRow(String appName, String packageName, ImageSource appIcon)
+        private Grid CreateAppRow(string appName, string packageName, ImageSource appIcon)
         {
             Grid appRow = new Grid
             {
@@ -148,11 +143,11 @@ namespace HourGuard
         }
 
         // When an app button is clicked, add it to the targeted apps list and return to main page
-        private void TargetNewApp(object sender, EventArgs e, String appName, String packageName)
+        private void TargetNewApp(object sender, EventArgs e, string appName, string packageName)
         {
-            this.preferances.Edit().PutBoolean(packageName, true).Apply();
+            preferences.Edit().PutBoolean(packageName, true).Apply();
 
-            this.mainPageObj.addTargetedApp(appName, packageName);
+            this.mainPage.AddTargetedApp(appName, packageName);
             Navigation.PopAsync();
         }
     }

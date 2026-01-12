@@ -7,72 +7,87 @@ namespace HourGuard
 {
     public partial class MainPage : ContentPage
     {
-
-        private ISharedPreferences preferances = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+        // SharedPreferences file used to store the list of targeted apps
+        private ISharedPreferences preferences =
+            Android.App.Application.Context.GetSharedPreferences(
+                HourGuardConstants.TARGETED_APPS_FILE_NAME,
+                FileCreationMode.Private);
 
         public MainPage()
         {
             InitializeComponent();
-            getTargetedAppsFromPreferances();
+            GetTargetedAppsFromPreferences();
 
+            // Navigate to permissions setup page
             EnablePermissionsButton.Clicked += (s, e) =>
             {
                 Navigation.PushAsync(new PermissionsSetUp());
             };
 
+            // Navigate to the "Add App" page, passing this page as a callback target
             AddAppButton.Clicked += (s, e) =>
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
         }
 
-        private void getTargetedAppsFromPreferances()
+        private void GetTargetedAppsFromPreferences()
         {
-            IDictionary<string, object> allEntries = preferances.All;
+            // Retrieve all stored entries (packageName → bool)
+            IDictionary<string, object> allEntries = preferences.All;
+
             foreach (KeyValuePair<string, object> entry in allEntries)
             {
                 string packageName = entry.Key;
                 bool isTargeted = (bool)entry.Value;
 
-                string appname = getAppnameFromPackage(packageName);
+                // Convert package name to human‑readable app name
+                string appName = GetAppNameFromPackage(packageName);
 
-                if (!string.IsNullOrEmpty(appname))
+                // Only add to UI if the app still exists on the device
+                if (!string.IsNullOrEmpty(appName))
                 {
-                    addTargetedApp(appname, packageName, isTargeted);
+                    AddTargetedApp(appName, packageName, isTargeted);
                 }
             }
         }
 
-        private string getAppnameFromPackage(string packageName)
+        private string GetAppNameFromPackage(string packageName)
         {
             string appName = "";
             PackageManager pm = Android.App.Application.Context.PackageManager;
 
             try
             {
+                // Get metadata for the installed app
                 ApplicationInfo appInfo = pm.GetApplicationInfo(packageName, 0);
+
+                // Convert to readable label (e.g., "YouTube")
                 appName = pm.GetApplicationLabel(appInfo);
             }
             catch (PackageManager.NameNotFoundException)
             {
-                // Package does not exist
+                // App was uninstalled or package name is invalid
             }
 
             return appName;
         }
 
-        public void addTargetedApp(String appName, String packageName, Boolean startEnabled = true)
+        // Adds a new row to the UI list
+        public void AddTargetedApp(string appName, string packageName, bool startEnabled = true)
         {
+            // Create a row with two columns: label + switch
             Grid newTargetLine = new Grid
             {
                 ColumnDefinitions =
                 {
-                    new ColumnDefinition { Width = GridLength.Star },// label column
-                    new ColumnDefinition { Width = GridLength.Auto }//  switch column
+                    new ColumnDefinition { Width = GridLength.Star }, // App name
+                    new ColumnDefinition { Width = GridLength.Auto }  // Switch
                 },
                 Padding = new Thickness(0, 5)
             };
 
+            // Label showing the app name
             Label newTargetLabel = new Label
             {
                 FontSize = 16,
@@ -80,29 +95,38 @@ namespace HourGuard
                 VerticalTextAlignment = TextAlignment.Center
             };
 
+            // Switch that enables/disables monitoring for this app
             Switch newTargetSwitch = new Switch
             {
                 IsToggled = startEnabled,
                 HorizontalOptions = LayoutOptions.End,
                 VerticalOptions = LayoutOptions.Center,
+
+                // Store package name inside ClassId so we know which app was toggled
                 ClassId = packageName
             };
 
-            newTargetSwitch.Toggled += onTargetToggled;
+            // Save changes when toggled
+            newTargetSwitch.Toggled += OnTargetToggled;
 
+            // Add UI elements to the row
             newTargetLine.Add(newTargetLabel, 0, 0);
             newTargetLine.Add(newTargetSwitch, 1, 0);
 
-            TargetAppsList.Children.Insert(TargetAppsList.Children.Count - 1, newTargetLine);
+            // Insert before the "Add App" button row
+            TargetAppsList.Children.Insert(
+                TargetAppsList.Children.Count - 1,
+                newTargetLine);
         }
 
-        private void onTargetToggled(object sender, ToggledEventArgs e)
+        private void OnTargetToggled(object sender, ToggledEventArgs e)
         {
+            // Identify which switch was toggled
             Switch toggledSwitch = (Switch)sender;
             string packageName = toggledSwitch.ClassId;
 
-            ISharedPreferencesEditor prefsEditor = this.preferances.Edit();
-
+            // Save the new toggle state to SharedPreferences
+            ISharedPreferencesEditor prefsEditor = this.preferences.Edit();
             prefsEditor.PutBoolean(packageName, e.Value).Apply();
         }
     }
