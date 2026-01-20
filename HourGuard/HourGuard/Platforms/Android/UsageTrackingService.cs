@@ -21,7 +21,7 @@ namespace HourGuard.Platforms.Android
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const int NOTIFICATION_ID = 1001;
-        private const string TAG = "UsageTrackingService";
+        private const string TAG = "HourGuardService";
 
         public override IBinder OnBind(Intent intent)
         {
@@ -96,6 +96,11 @@ namespace HourGuard.Platforms.Android
                     // Sort by last time used to find the most recent
                     var sortedStats = stats.OrderByDescending(s => s.LastTimeUsed);
                     string currentForegroundApp = sortedStats.First()?.PackageName;
+
+                    if (currentForegroundApp == "com.SeniorDesign.HourGuard")
+                    {
+                        currentForegroundApp = sortedStats.Skip(1).First()?.PackageName;
+                    }
 
                     Log.Debug(TAG, $"FOREGROUND APP DETECTED: {currentForegroundApp}"); // NEW LOG: Log the detected app
 
