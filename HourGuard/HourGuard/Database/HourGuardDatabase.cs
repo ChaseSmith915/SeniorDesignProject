@@ -37,11 +37,11 @@ namespace HourGuard.Database
               .FirstOrDefaultAsync();
 
         // Gets the settings for all apps
-        public Task<List<AppSettings>> GetAllSettignsAsync() =>
+        public Task<List<AppSettings>> GetAllSettingsAsync() =>
             db.Table<AppSettings>().ToListAsync();
 
         // Gets the settings for all enabled apps
-        public Task<List<AppSettings>> GetEnabledSettignsAsync() =>
+        public Task<List<AppSettings>> GetEnabledSettingsAsync() =>
             db.Table<AppSettings>()
               .Where(x => x.Enabled)
               .ToListAsync();
@@ -50,32 +50,49 @@ namespace HourGuard.Database
         public Task SaveSettingAsync(AppSettings settings) =>
             db.InsertOrReplaceAsync(settings);
 
+        // Sets the enabled status for a specific app
+        public Task SetEnabledAsync(string packageName, bool enabled)
+        {
+            return db.ExecuteAsync(
+                "UPDATE AppSettings SET Enabled = ? WHERE PackageName = ?",
+                enabled,
+                packageName);
+        }
+
+        // Checks if a specific app has settings and is enabled
+        public async Task<bool> IsEnabledAsync(string packageName)
+        {
+            return await db.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM AppSettings WHERE PackageName = ? AND Enabled = 1",
+                packageName) > 0;
+        }
+
         // ─────────────────────────────
         // App usage state (runtime)
         // ─────────────────────────────
 
         // Gets the timer snapshot for a specific app by package name
-        public Task<AppUsageState?> GetUsageStateAsync(string packageName) =>
-            db.Table<AppUsageState>()
+        public Task<TimerStatusSnapshots?> GetUsageStateAsync(string packageName) =>
+            db.Table<TimerStatusSnapshots>()
               .Where(x => x.PackageName == packageName)
               .FirstOrDefaultAsync();
 
         // Gets the timer snapshots for all apps
-        public Task<List<AppUsageState>> GetAllUsageStatesAsync() =>
-            db.Table<AppUsageState>().ToListAsync();
+        public Task<List<TimerStatusSnapshots>> GetAllUsageStatesAsync() =>
+            db.Table<TimerStatusSnapshots>().ToListAsync();
 
         // Saves or updates the timer snapshot for a specific app
-        public Task SaveUsageStateAsync(AppUsageState state) =>
+        public Task SaveUsageStateAsync(TimerStatusSnapshots state) =>
             db.InsertOrReplaceAsync(state);
 
         // Clears the timer snapshot for a specific app
         public Task ClearUsageStateAsync(string packageName) =>
-            db.Table<AppUsageState>()
+            db.Table<TimerStatusSnapshots>()
               .Where(x => x.PackageName == packageName)
               .DeleteAsync();
 
         // Clears all timer snapshots
         public Task ClearAllUsageStatesAsync() =>
-            db.DeleteAllAsync<AppUsageState>();
+            db.DeleteAllAsync<TimerStatusSnapshots>();
     }
 }
