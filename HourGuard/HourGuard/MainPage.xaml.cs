@@ -1,22 +1,20 @@
 ﻿#if ANDROID
 using Android.Content;
 using Android.Content.PM;
+using HourGuard.Database;
 #endif
 
 namespace HourGuard
 {
     public partial class MainPage : ContentPage
     {
-        // SharedPreferences file used to store the list of targeted apps
-        private ISharedPreferences preferences =
-            Android.App.Application.Context.GetSharedPreferences(
-                HourGuardConstants.TARGETED_APPS_FILE_NAME,
-                FileCreationMode.Private);
+        // database file used to store (among other things) the list of targeted apps
+        private HourGuardDatabase db = App.Database;
 
         public MainPage()
         {
             InitializeComponent();
-            GetTargetedAppsFromPreferences();
+            GetTargetedApps();
 
             // Navigate to permissions setup page
             EnablePermissionsButton.Clicked += (s, e) =>
@@ -31,15 +29,13 @@ namespace HourGuard
             };
         }
 
-        private void GetTargetedAppsFromPreferences()
+        private void GetTargetedApps()
         {
-            // Retrieve all stored entries (packageName → bool)
-            IDictionary<string, object> allEntries = preferences.All;
-
-            foreach (KeyValuePair<string, object> entry in allEntries)
+            // Retrieve all stored entries
+            foreach (AppSettings entry in db.GetAllSettingsAsync().Result)
             {
-                string packageName = entry.Key;
-                bool isTargeted = (bool)entry.Value;
+                string packageName = entry.PackageName;
+                bool isTargeted = entry.Enabled;
 
                 // Convert package name to human‑readable app name
                 string appName = GetAppNameFromPackage(packageName);
@@ -125,9 +121,8 @@ namespace HourGuard
             Switch toggledSwitch = (Switch)sender;
             string packageName = toggledSwitch.ClassId;
 
-            // Save the new toggle state to SharedPreferences
-            ISharedPreferencesEditor prefsEditor = this.preferences.Edit();
-            prefsEditor.PutBoolean(packageName, e.Value).Apply();
+            // Save the new toggle state to database
+            db.SetEnabledAsync(packageName, e.Value).Wait();
         }
     }
 }

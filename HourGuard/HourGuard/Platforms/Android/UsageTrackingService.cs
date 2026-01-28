@@ -1,20 +1,23 @@
 ﻿using Android.App;
+using Android.App.Usage;
 using Android.Content;
+using Android.Content.PM; // Required for ForegroundServiceType on Android 14 (API 34)
 using Android.OS;
 using Android.Runtime;
-using AndroidX.Core.App;
-using System.Threading;
 using Android.Util; // For Log
+using AndroidX.Core.App;
 using System.Linq; // Required for OrderByDescending and Any()
-using Android.App.Usage;
-using Android.Content.PM; // Required for ForegroundServiceType on Android 14 (API 34)
+using System.Threading;
+using HourGuard.Database;
 
 namespace HourGuard.Platforms.Android
 {
     [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
     public class UsageTrackingService : Service
     {
-        private ISharedPreferences preferences = global::Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+        private HourGuardDatabase db = App.Database;
+
+        private Dictionary<string, HourGuardTimer> appTimers = new Dictionary<string, HourGuardTimer>();
 
         private Timer timer;
         private string lastForegroundApp = string.Empty;
@@ -31,6 +34,9 @@ namespace HourGuard.Platforms.Android
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
             Log.Debug(TAG, "Usage Tracking Service started.");
+
+            // 0. Initialize appTimers from database settings
+            InitializeAppTimers();
 
             // 1. Create Notification Channel (Required for Android 8.0+)
             CreateNotificationChannel();
@@ -73,6 +79,22 @@ namespace HourGuard.Platforms.Android
             base.OnDestroy();
         }
 
+        private void InitializeAppTimers()
+        {
+            // Retrieve all stored entries
+            foreach (AppSettings entry in db.GetAllSettingsAsync().Result)
+            {
+                string packageName = entry.PackageName;
+                bool isTargeted = entry.Enabled;
+                if (isTargeted && !appTimers.ContainsKey(packageName))
+                {
+                    // Temporarily set default limits.
+                    appTimers[packageName] = new HourGuardTimer(entry.DailyTimeLimit, entry.SessionTimeLimit);
+                    Log.Debug(TAG, $"Initialized timer for {packageName}.");
+                }
+            }
+        }
+
         private void CheckForegroundApp(object state)
         {
             try
@@ -106,21 +128,43 @@ namespace HourGuard.Platforms.Android
 
                     if (string.IsNullOrEmpty(currentForegroundApp)) return;
 
-                    // Check if a *new* app has come to the foreground
-                    if (currentForegroundApp != lastForegroundApp)
+                    // Only proceed if the app has an entry in app settings and is enabled
+                    if (db.IsEnabledAsync(currentForegroundApp).Result)
                     {
-                        Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}"); // Enhanced Log
-
-                        // Gets if restrictions are turned on for this app or retuns false if not found
-                        if (preferences.GetBoolean(currentForegroundApp, false))
+                        Log.Debug(TAG, $"Targeted app recognized: {currentForegroundApp}");
+                        // Show popup if a *new* app has come to the foreground, otherwise incriment timer
+                        if (currentForegroundApp != lastForegroundApp)
                         {
-                            Log.Debug(TAG, "APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
+                            Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
                             // App was opened! Show the popup.
                             ShowPopup();
-                        }
 
-                        // Update the last known app
-                        lastForegroundApp = currentForegroundApp;
+                            // Update the last known app
+                            lastForegroundApp = currentForegroundApp;
+                        }
+                        else
+                        {
+                            (int dailyTimerStatus, int sessionTimerStatus) timerStatuses = appTimers[currentForegroundApp].TickTimers(TimeSpan.FromSeconds(3));
+
+                            Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}. Daily Status: {timerStatuses.dailyTimerStatus}, Session Status: {timerStatuses.sessionTimerStatus}"); // NEW LOG: Timer status
+
+                            if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                            {
+                                Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
+                                //TODO: New popup for daily limit reached (add text to it?)
+                                ShowPopup();
+                            }
+                            else if (timerStatuses.sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                            {
+                                Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
+                                ShowPopup();
+                            }
+                            else if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
+                            {
+                                Log.Debug(TAG, $"Daily time limit warning for {currentForegroundApp}.");
+                                //TODO: Call warning popup for daily limit approaching
+                            }
+                        }
                     }
                 }
                 else

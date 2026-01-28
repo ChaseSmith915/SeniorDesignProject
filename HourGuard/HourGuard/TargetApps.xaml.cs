@@ -8,6 +8,8 @@ using static Android.App.ActivityManager;
 using Android.Graphics.Drawables;
 
 using Android.Graphics;
+using HourGuard.Database;
+
 
 
 #if ANDROID
@@ -19,14 +21,14 @@ namespace HourGuard
     public partial class TargetApps : ContentPage
     {
         private MainPage mainPage;
-        private ISharedPreferences preferences = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+        private HourGuardDatabase db = App.Database;
 
         private string[] targetedApps;
 
         public TargetApps(MainPage mainPage)
         {
             this.mainPage = mainPage;
-            this.targetedApps = preferences.All.Keys.ToArray();
+            this.targetedApps = db.GetAllSettingsAsync().Result.Select(s => s.PackageName).ToArray();
 
             InitializeComponent();
             InitializeAppList();
@@ -145,7 +147,7 @@ namespace HourGuard
         // When an app button is clicked, add it to the targeted apps list and return to main page
         private void TargetNewApp(object sender, EventArgs e, string appName, string packageName)
         {
-            preferences.Edit().PutBoolean(packageName, true).Apply();
+            db.SaveSettingAsync(new AppSettings{PackageName = packageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(1)}).Wait();
 
             this.mainPage.AddTargetedApp(appName, packageName);
             Navigation.PopAsync();
