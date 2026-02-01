@@ -57,9 +57,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Platforms\Android\DialogActivityOLD.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="Platforms\Android\Resources\values\strings.xml" />
 	  <None Remove="Platforms\Android\Resources\values\styles.xml" />
 	  <None Remove="Platforms\Android\Resources\xml\accessibility_service_config.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="Platforms\Android\DialogActivityOLD.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -70,6 +78,9 @@
 
 	<ItemGroup>
 	  <MauiXaml Update="PermissionsSetUp.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Platforms\Android\DialogActivity.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="TargetApps.xaml">

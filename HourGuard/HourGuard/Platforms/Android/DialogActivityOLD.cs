@@ -7,7 +7,7 @@ using Android.Views;
 namespace HourGuard
 {
     [Activity(Label = "Confirm", Theme = "@style/DialogTheme")]
-    public class DialogActivity : Activity
+    public class DialogActivityOLD : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {

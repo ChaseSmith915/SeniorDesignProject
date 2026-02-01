@@ -135,11 +135,11 @@ namespace HourGuard.Platforms.Android
 
         private void ShowPopup(string? appName = null)
         {
-            // We must start an Activity from a service context, so we add NEW_TASK flag
-            Intent popupIntent = new Intent(this, typeof(DialogActivity));
-            popupIntent.AddFlags(ActivityFlags.NewTask);
-            popupIntent.PutExtra("appName", appName);
-            StartActivity(popupIntent);
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.Navigation
+                    .PushModalAsync(new DialogActivity(appName));
+            });
         }
 
         private void CreateNotificationChannel()
