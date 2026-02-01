@@ -13,7 +13,7 @@ namespace HourGuard
         {
             base.OnCreate(savedInstanceState);
 
-            // grab app name
+            // grabs app name
             string appName = Intent.GetStringExtra("appName");
             if (appName == null)
             {

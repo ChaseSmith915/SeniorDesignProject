@@ -111,6 +111,7 @@ namespace HourGuard.Platforms.Android
                         {
                             Log.Debug(TAG, "APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
 
+                            // Gets readable app name
                             string appName = AndroidAppUtils.GetAppNameFromPackage(currentForegroundApp);
 
                             // App was opened! Show the popup.
@@ -132,7 +133,7 @@ namespace HourGuard.Platforms.Android
             }
         }
 
-        private void ShowPopup(string appName)
+        private void ShowPopup(string? appName = null)
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
