@@ -133,12 +133,23 @@ namespace HourGuard.Platforms.Android
             }
         }
 
-        private void ShowPopup(string? appName = null)
+        private void ShowPopup(string? appName = null, TimeSpan? dailyTimeUsed = null, TimeSpan? dailyTimeLimit = null, int? streak = null)
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
             popupIntent.AddFlags(ActivityFlags.NewTask);
             popupIntent.PutExtra("appName", appName);
+            if (dailyTimeUsed.HasValue)
+            {
+                long dailyTimeUsedMillis = (long)dailyTimeUsed.Value.TotalMilliseconds;
+                popupIntent.PutExtra("dailyTimeUsed", dailyTimeUsedMillis);
+            }
+            if (dailyTimeLimit.HasValue)
+            {
+                long dailyTimeLimitMillis = (long)dailyTimeLimit.Value.TotalMilliseconds;
+                popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
+            }
+            popupIntent.PutExtra("streak", streak ?? 0);
             StartActivity(popupIntent);
         }
 

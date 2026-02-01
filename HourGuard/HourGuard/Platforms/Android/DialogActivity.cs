@@ -1,8 +1,11 @@
 ﻿using Android.App;
-using Android.OS;
 using Android.Content;
+using Android.OS;
 using Android.Widget;
-using Android.Views;
+using Microsoft.Maui.Platform;
+using static Android.Provider.ContactsContract.CommonDataKinds;
+using static Microsoft.Maui.ApplicationModel.Platform;
+using Intent = Android.Content.Intent;
 
 namespace HourGuard
 {
@@ -13,178 +16,103 @@ namespace HourGuard
         {
             base.OnCreate(savedInstanceState);
 
-            // grabs app name
+            // grabs arguments
             string appName = Intent.GetStringExtra("appName");
+            long dailyTimeUsedMillis = Intent.GetLongExtra("dailyTimeUsedMillis", 0);
+            TimeSpan dailyTimeUsed = TimeSpan.FromMilliseconds(dailyTimeUsedMillis);
+            long dailyTimeLimitMillis = Intent.GetLongExtra("dailyTimeLimitMillis", 0);
+            TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
+            int streak = Intent.GetIntExtra("streak", 0);
+
             if (appName == null)
             {
                 appName = "THIS APP";
             }
 
-            // Basic vertical layout
-            var layout = new LinearLayout(this) { Orientation = Orientation.Vertical };
+            int dailyLimitUsedPercent = (int)Math.Truncate(dailyTimeUsed.TotalSeconds / dailyTimeLimit.TotalSeconds * 100);
 
-            if (true)   // display only if app limit is set
+            streak = 16;
+            dailyLimitUsedPercent = 37;
+
+            // load layout from xml file
+            SetContentView(Resource.Layout.dialog_activity);
+
+            // set variables
+            var dailyLimitText = FindViewById<TextView>(Resource.Id.dailyLimitText);
+            var dailyLimitProgressBar = FindViewById<Android.Widget.ProgressBar>(Resource.Id.dailyLimitProgressBar);
+            var streakText = FindViewById<TextView>(Resource.Id.streakText);
+            var continueIntoAppText = FindViewById<TextView>(Resource.Id.continueIntoAppText);
+            var taskQuestionText = FindViewById<TextView>(Resource.Id.taskQuestionText);
+            var taskAnswerBox = FindViewById<EditText>(Resource.Id.taskAnswerBox);
+            var sessionTimerText = FindViewById<TextView>(Resource.Id.sessionTimerText);
+            var sessionTimerSlider = FindViewById<SeekBar>(Resource.Id.sessionTimerSlider);
+            var sessionTimerValueText = FindViewById<TextView>(Resource.Id.sessionTimerLabelText);
+            var buttonLayout = FindViewById<LinearLayout>(Resource.Id.buttonLayout);
+            var yesButton = FindViewById<Android.Widget.Button>(Resource.Id.yesButton);
+            var noButton = FindViewById<Android.Widget.Button>(Resource.Id.noButton);
+
+            // daily limit usage
+            dailyLimitText.Text = $"Daily time limit usage: {dailyTimeUsed} of {dailyTimeLimit}";
+            if (dailyLimitUsedPercent >= 100)
             {
-                // Original "continue" question
-                var appLimitText = new TextView(this)
-                {
-                    TextSize = 18f,
-                    Text = "Daily Limit usage"
-                };
-                layout.AddView(appLimitText);
-
-                // Placeholder progress bar at the top
-                var progressBar = new Android.Widget.ProgressBar(this, null, Android.Resource.Attribute.ProgressBarStyleHorizontal)
-                {
-                    LayoutParameters = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MatchParent,
-                        20) // height in pixels, adjust as needed
-                };
-                progressBar.Max = 100;      // maximum value
-                progressBar.Progress = 0;   // current progress
-                layout.AddView(progressBar);
-
-                // Handler for updating progress
-                var handler = new Android.OS.Handler();
-                int progress = 0;
-
-                // Runnable to update the progress every 1 second
-                void UpdateProgress()
-                {
-                    progress += 10; // increase by 10%
-                    if (progress > 100) progress = 0; // reset when exceeding 100%
-                    progressBar.Progress = progress;
-
-                    // Schedule next update in 1 second (1000 ms)
-                    handler.PostDelayed(UpdateProgress, 1000);
-                }
-
-                // Start the loop
-                UpdateProgress();
-
-                // placeholder for streaks
-                var streakDays = 10;
-                var streakText = new TextView(this)
-                {
-                    TextSize = 18f,
-                    Text = $"You have a {streakDays} day streak."
-                };
-                layout.AddView(streakText);
+                dailyLimitProgressBar.Progress = 100;
+                dailyLimitProgressBar.ProgressTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Red);
+            }
+            else
+            {
+                dailyLimitProgressBar.Progress = dailyLimitUsedPercent;
             }
 
-            // Original "continue" question
-            var tv = new TextView(this)
+            // streak info
+            if (streak == 0)
             {
-                TextSize = 18f,
-                Text = $"Do you want to continue into {appName}?\n You must complete a task first."
-            };
-            layout.AddView(tv);
+                streakText.Text = $"You do not have an active streak :(";
+            }
+            else
+            {
+                streakText.Text = $"You currently have a {streak} day streak!";
+            }
 
-            // 🧠 Load a random question from the list of questions
+            // continue into app
+            continueIntoAppText.Text = $"Do you want to continue into {appName}?\nYou must complete a task before continuing.";
+
+            // task
             var questions = QuestionBank.Questions;
             var randomQuestion = new System.Random();
             var question = questions[randomQuestion.Next(questions.Count)];
+            taskQuestionText.Text = question.question;
 
-            // Display the popup task question
-            var questionText = new TextView(this)
-            {
-                TextSize = 18f,
-                Text = question.Text
-            };
-            layout.AddView(questionText);
-
-            // Add an EditText below the question for user input
-            var answerBox = new EditText(this)
-            {
-                Hint = "Enter your answer"
-            };
-            answerBox.SetFilters(new Android.Text.IInputFilter[]
+            // answer box
+            taskAnswerBox.SetFilters(new Android.Text.IInputFilter[]
             {
                 new Android.Text.InputFilterLengthFilter(16),
                 new AllowedCharacterFilter()
             });
-            layout.AddView(answerBox);
-
-            // Optionally specify a session timer (placeholder for now)
-            var sessionTimerText = new TextView(this)
+            taskAnswerBox.TextChanged += (s, e) =>
             {
-                TextSize = 18f,
-                Text = "Optionally, specify a session timer."
+                string answer = taskAnswerBox.Text.Trim();
+                yesButton.Enabled = (answer == question.correctAnswer);
             };
-            layout.AddView(sessionTimerText);
 
-            // Slider for session time in minutes
-            var timeSlider = new Android.Widget.SeekBar(this)
+            // session timer
+            sessionTimerText.Text = "Optionally, set a session timer:";
+            sessionTimerValueText.Text = "Duration: not set";
+            sessionTimerSlider.ProgressChanged += (s, e) =>
             {
-                Max = 60 // max 60 minutes
-            };
-            timeSlider.Progress = 0; // default 0 minutes = "unlimited"
-            layout.AddView(timeSlider);
-
-            // Label to show selected value
-            var timeLabel = new TextView(this)
-            {
-                Text = "Duration: Unlimited",
-                TextSize = 16f
-            };
-            layout.AddView(timeLabel);
-
-            // Snap to 5-minute increments
-            timeSlider.ProgressChanged += (s, e) =>
-            {
-                // Round to nearest multiple of 5
                 int snappedValue = (int)(Math.Round(e.Progress / 5.0) * 5);
-
-                // Update slider to snapped value
-                timeSlider.Progress = snappedValue;
-
-                // Update label
-                timeLabel.Text = snappedValue == 0 ? "Duration: Unlimited" : $"Duration: {snappedValue} minutes";
+                sessionTimerSlider.Progress = snappedValue;
+                sessionTimerValueText.Text = snappedValue == 0 ? "Duration: not set" : $"Duration: {snappedValue} minutes";
             };
 
-            // Buttons layout
-            var buttonLayout = new LinearLayout(this) { Orientation = Orientation.Horizontal };
-
-            var yesBtn = new Android.Widget.Button(this) { Text = "Yes open app" };
-            var noBtn = new Android.Widget.Button(this) { Text = "No go away" };
-
-            yesBtn.Enabled = false;
-
-            var randomYesNo = new System.Random();
-            if (randomYesNo.Next(2) == 0)
+            // buttons
+            yesButton.Text = $"Open\n{appName}";
+            yesButton.Click += (s, e) =>
             {
-                // Add Yes first, No second
-                buttonLayout.AddView(yesBtn);
-                buttonLayout.AddView(noBtn);
-            }
-            else
-            {
-                // Add No first, Yes second
-                buttonLayout.AddView(noBtn);
-                buttonLayout.AddView(yesBtn);
-            }
-
-            layout.AddView(buttonLayout);
-
-            SetContentView(layout);
-
-            // Text change listener to check answer
-            answerBox.TextChanged += (s, e) =>
-            {
-                string answer = answerBox.Text.Trim();
-                // Accept "2" or "two" (case insensitive)
-                yesBtn.Enabled = (answer == question.CorrectAnswer);
-            };
-
-            yesBtn.Click += (s, e) =>
-            {
-                // Just finish and let clock app remain in foreground
                 FinishAndRemoveTask();
             };
-
-            noBtn.Click += (s, e) =>
+            noButton.Text = "Close app";
+            noButton.Click += (s, e) =>
             {
-                // Send user to Home, backgrounding clock app
                 Intent intent = new Intent(Intent.ActionMain);
                 intent.AddCategory(Intent.CategoryHome);
                 intent.SetFlags(ActivityFlags.NewTask);
@@ -192,6 +120,27 @@ namespace HourGuard
 
                 FinishAndRemoveTask();
             };
+
+            void RandomButtonOrder()
+            {
+                buttonLayout.RemoveAllViews();
+
+                var randomYesNo = new System.Random();
+                if (randomYesNo.Next(2) == 0)
+                {
+                    // Add Yes first, No second
+                    buttonLayout.AddView(yesButton);
+                    buttonLayout.AddView(noButton);
+                }
+                else
+                {
+                    // Add No first, Yes second
+                    buttonLayout.AddView(noButton);
+                    buttonLayout.AddView(yesButton);
+                }
+            }
+            RandomButtonOrder();
+
         }
 
         // Prevent back from doing anything surprising

@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp">
+
+	<LinearLayout
+        android:id="@+id/dialog_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="12dp">
+
+		<!-- Daily Limit usage -->
+		<TextView
+            android:id="@+id/dailyLimitText"
+            android:text="Daily Limit usage"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/PrimaryDarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+		<!-- Progress bar -->
+		<ProgressBar
+            android:id="@+id/dailyLimitProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="@color/Primary" />
+
+		<!-- Streak label -->
+		<TextView
+            android:id="@+id/streakText"
+            android:text="You have a 10 day streak"
+            android:textSize="18sp"
+            android:textColor="@color/PrimaryDarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
+
+		<!-- Prompt label -->
+		<TextView
+            android:id="@+id/continueIntoAppText"
+            android:text="Do you want to continue?"
+            android:textSize="18sp"
+            android:textColor="@color/PrimaryDarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
+
+		<!-- Question label -->
+		<TextView
+            android:id="@+id/taskQuestionText"
+            android:text="Question here"
+            android:textSize="18sp"
+            android:textColor="@color/PrimaryDarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
+
+		<!-- Answer box -->
+		<EditText
+            android:id="@+id/taskAnswerBox"
+            android:hint="Enter your answer"
+            android:inputType="text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/PrimaryDarkText"
+            android:backgroundTint="@color/Secondary"
+            android:layout_marginTop="12dp" />
+
+		<!-- Session timer -->
+		<TextView
+            android:id="@+id/sessionTimerText"
+            android:text="Optionally specify a session timer"
+            android:textSize="18sp"
+            android:textColor="@color/PrimaryDarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
+
+		<!-- Time slider -->
+		<SeekBar
+            android:id="@+id/sessionTimerSlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="60"
+            android:layout_marginTop="8dp" />
+
+		<!-- Time label -->
+		<TextView
+            android:id="@+id/sessionTimerLabelText"
+            android:text="Duration: Unlimited"
+            android:textSize="16sp"
+            android:textColor="@color/PrimaryDarkText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" />
+
+		<!-- Buttons row -->
+		<LinearLayout
+            android:id="@+id/buttonLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:spacing="12dp">
+
+			<Button
+                android:id="@+id/yesButton"
+                android:text="Yes open app"
+                android:enabled="false"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+
+			<Button
+                android:id="@+id/noButton"
+                android:text="No go away"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+		</LinearLayout>
+	</LinearLayout>
+</ScrollView>
