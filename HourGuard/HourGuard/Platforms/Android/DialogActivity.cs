@@ -13,6 +13,13 @@ namespace HourGuard
         {
             base.OnCreate(savedInstanceState);
 
+            // grab app name
+            string appName = Intent.GetStringExtra("appName");
+            if (appName == null)
+            {
+                appName = "THIS APP";
+            }
+
             // Basic vertical layout
             var layout = new LinearLayout(this) { Orientation = Orientation.Vertical };
 
@@ -69,7 +76,7 @@ namespace HourGuard
             var tv = new TextView(this)
             {
                 TextSize = 18f,
-                Text = "Do you want to continue into this app?\n You must complete a task first."
+                Text = $"Do you want to continue into {appName}?\n You must complete a task first."
             };
             layout.AddView(tv);
 

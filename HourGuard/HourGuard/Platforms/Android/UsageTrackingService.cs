@@ -110,8 +110,11 @@ namespace HourGuard.Platforms.Android
                         if (preferences.GetBoolean(currentForegroundApp, false))
                         {
                             Log.Debug(TAG, "APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
+
+                            string appName = AndroidAppUtils.GetAppNameFromPackage(currentForegroundApp);
+
                             // App was opened! Show the popup.
-                            ShowPopup();
+                            ShowPopup(appName);
                         }
 
                         // Update the last known app
@@ -129,11 +132,12 @@ namespace HourGuard.Platforms.Android
             }
         }
 
-        private void ShowPopup()
+        private void ShowPopup(string appName)
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
             popupIntent.AddFlags(ActivityFlags.NewTask);
+            popupIntent.PutExtra("appName", appName);
             StartActivity(popupIntent);
         }
 
