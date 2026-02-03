@@ -16,7 +16,6 @@ namespace HourGuard.Database
         public long TimestampTicks { get; set; }
 
         public long DailyElapsedMs { get; set; }
-        public long SessionElapsedMs { get; set; }
 
         [Ignore]
         public DateTime Timestamp
@@ -30,13 +29,6 @@ namespace HourGuard.Database
         {
             get => TimeSpan.FromMilliseconds(DailyElapsedMs);
             set => DailyElapsedMs = (long)value.TotalMilliseconds;
-        }
-
-        [Ignore]
-        public TimeSpan SessionElapsed
-        {
-            get => TimeSpan.FromMilliseconds(SessionElapsedMs);
-            set => SessionElapsedMs = (long)value.TotalMilliseconds;
         }
     }
 }
