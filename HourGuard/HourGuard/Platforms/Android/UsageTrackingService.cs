@@ -25,6 +25,7 @@ namespace HourGuard.Platforms.Android
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const int NOTIFICATION_ID = 1001;
         private const string TAG = "HourGuardService";
+        private const int TICK_INTERVAL_SEC = 5;
 
         public override IBinder OnBind(Intent intent)
         {
@@ -64,8 +65,9 @@ namespace HourGuard.Platforms.Android
 
             // 4. Start the polling timer
             // We check every 3 seconds. Adjust as needed for battery vs. responsiveness.
-            timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(3).TotalMilliseconds);
-            Log.Debug(TAG, "Timer started, checking every 3000ms."); // NEW LOG
+            timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(TICK_INTERVAL_SEC).TotalMilliseconds);
+
+            Log.Debug(TAG, $"Timer started, checking every {TICK_INTERVAL_SEC * 1000}ms."); // NEW LOG
 
             // 5. Return "Sticky" to ensure the service restarts if killed
             return StartCommandResult.Sticky;
@@ -81,15 +83,41 @@ namespace HourGuard.Platforms.Android
 
         private void InitializeAppTimers()
         {
-            // Retrieve all stored entries
-            foreach (AppSettings entry in db.GetAllSettingsAsync().Result)
+            var timerSettings = db.GetAllSettingsAsync().Result;
+            var timerSnapshots = db.GetAllUsageStatesAsync().Result;
+            Dictionary<String, TimerStatusSnapshots> timerSnapshotsDict = timerSnapshots.ToDictionary(s => s.PackageName);
+
+            foreach (AppSettings appSetting in timerSettings)
             {
-                string packageName = entry.PackageName;
-                bool isTargeted = entry.Enabled;
-                if (isTargeted && !appTimers.ContainsKey(packageName))
+                string packageName = appSetting.PackageName;
+
+                // If there is a snapshot in the database for this app
+                if (timerSnapshotsDict.ContainsKey(appSetting.PackageName))
                 {
-                    // Temporarily set default limits.
-                    appTimers[packageName] = new HourGuardTimer(entry.DailyTimeLimit, entry.SessionTimeLimit);
+                    TimerStatusSnapshots timerSnapshot = timerSnapshotsDict[appSetting.PackageName];
+                    if (timerSnapshot.Timestamp.Date == DateTime.Today)
+                    {
+                        if (appSetting != null && appSetting.Enabled)
+                        {
+                            TimeSpan dailyLimit = appSetting.DailyTimeLimit;
+                            TimeSpan sessionLimit = appSetting.SessionTimeLimit;
+                            TimeSpan dailyUsed = TimeSpan.FromMilliseconds(timerSnapshot.DailyElapsedMs);
+
+                            appTimers[packageName] = new HourGuardTimer(dailyLimit, dailyUsed, sessionLimit);
+
+                            Log.Debug(TAG, $"Restored timer for {packageName} with {dailyUsed.TotalMinutes} minutes elapsed");
+                        }
+                    }
+                    else
+                    {
+                        Log.Debug(TAG, $"Ignoring outdated snapshot for {timerSnapshot.PackageName} from {timerSnapshot.Timestamp.Date}");
+                        db.ClearUsageStateAsync(timerSnapshot.PackageName).Wait();
+                    }
+                }
+                // If there is not a database snapshot or the snapshot was outdated
+                if (appSetting != null && appSetting.Enabled && !appTimers.ContainsKey(packageName))
+                {
+                    appTimers[packageName] = new HourGuardTimer(appSetting.DailyTimeLimit, appSetting.SessionTimeLimit);
                     Log.Debug(TAG, $"Initialized timer for {packageName}.");
                 }
             }
@@ -144,7 +172,8 @@ namespace HourGuard.Platforms.Android
                         }
                         else
                         {
-                            (int dailyTimerStatus, int sessionTimerStatus) timerStatuses = appTimers[currentForegroundApp].TickTimers(TimeSpan.FromSeconds(3));
+                            (int dailyTimerStatus, int sessionTimerStatus) timerStatuses = appTimers[currentForegroundApp].TickTimers(TimeSpan.FromSeconds(TICK_INTERVAL_SEC));
+                            saveUsageSnapshot();
 
                             Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}. Daily Status: {timerStatuses.dailyTimerStatus}, Session Status: {timerStatuses.sessionTimerStatus}"); // NEW LOG: Timer status
 
@@ -203,6 +232,23 @@ namespace HourGuard.Platforms.Android
 
             var notificationManager = (NotificationManager)GetSystemService(NotificationService);
             notificationManager.CreateNotificationChannel(channel);
+        }
+        
+        private void saveUsageSnapshot()
+        {
+            foreach (var timer in appTimers)
+            {
+                String packageName = timer.Key;
+                HourGuardTimer timerData = timer.Value;
+
+                var snapshot = new TimerStatusSnapshots
+                {
+                    PackageName = packageName,
+                    Timestamp = DateTime.UtcNow,
+                    DailyElapsedMs = (long) timerData.GetDailyTimeUsed().TotalMilliseconds
+                };
+                db.SaveUsageStateAsync(snapshot).Wait();
+            }
         }
     }
 }
