@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Content.Res;
 using Android.OS;
 using Android.Widget;
 using Microsoft.Maui.Platform;
@@ -53,6 +54,12 @@ namespace HourGuard
             var yesButton = FindViewById<Android.Widget.Button>(Resource.Id.yesButton);
             var noButton = FindViewById<Android.Widget.Button>(Resource.Id.noButton);
 
+            // colors
+            Android.Graphics.Color colorPrimary = new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.Primary));
+            Android.Content.Res.ColorStateList colorGray100 = Android.Content.Res.ColorStateList.ValueOf(new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.Gray100)));
+            Android.Graphics.Color colorSecondary = new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.Secondary));
+            Android.Content.Res.ColorStateList colorSecondaryDarkText = Android.Content.Res.ColorStateList.ValueOf(new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.SecondaryDarkText)));
+
             // daily limit usage
             dailyLimitText.Text = $"Daily time limit usage: {dailyTimeUsed} of {dailyTimeLimit}";
             if (dailyLimitUsedPercent >= 100)
@@ -93,7 +100,18 @@ namespace HourGuard
             taskAnswerBox.TextChanged += (s, e) =>
             {
                 string answer = taskAnswerBox.Text.Trim();
-                yesButton.Enabled = (answer == question.correctAnswer);
+                if (answer == question.correctAnswer)
+                {
+                    yesButton.Enabled = true;
+                    yesButton.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(colorPrimary);
+                    yesButton.SetTextColor(colorGray100);
+                }
+                else
+                {
+                    yesButton.Enabled = false;
+                    yesButton.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(colorSecondary);
+                    yesButton.SetTextColor(colorSecondaryDarkText);
+                }
             };
 
             // session timer
@@ -107,12 +125,12 @@ namespace HourGuard
             };
 
             // buttons
-            yesButton.Text = $"Open\n{appName}";
+            yesButton.Text = "Continue";
             yesButton.Click += (s, e) =>
             {
                 FinishAndRemoveTask();
             };
-            noButton.Text = "Close app";
+            noButton.Text = "Exit";
             noButton.Click += (s, e) =>
             {
                 Intent intent = new Intent(Intent.ActionMain);

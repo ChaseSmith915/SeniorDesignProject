@@ -113,18 +113,22 @@
 
 			<Button
                 android:id="@+id/yesButton"
-                android:text="Yes open app"
+                android:text="Continue"
                 android:enabled="false"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+			    android:backgroundTint="@color/Secondary"
+			    android:textColor="@color/SecondaryDarkText"/>
 
 			<Button
                 android:id="@+id/noButton"
-                android:text="No go away"
+                android:text="Exit"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+			    android:backgroundTint="@color/Primary"
+		        android:textColor="@color/Gray100"/>
 		</LinearLayout>
 	</LinearLayout>
 </ScrollView>
