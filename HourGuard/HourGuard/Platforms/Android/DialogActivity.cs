@@ -16,6 +16,8 @@ namespace HourGuard
         {
             base.OnCreate(savedInstanceState);
 
+            SetFinishOnTouchOutside(false);
+
             // grabs arguments
             string appName = Intent.GetStringExtra("appName");
             long dailyTimeUsedMillis = Intent.GetLongExtra("dailyTimeUsedMillis", 0);
@@ -99,9 +101,9 @@ namespace HourGuard
             sessionTimerValueText.Text = "Duration: not set";
             sessionTimerSlider.ProgressChanged += (s, e) =>
             {
-                int snappedValue = (int)(Math.Round(e.Progress / 5.0) * 5);
-                sessionTimerSlider.Progress = snappedValue;
-                sessionTimerValueText.Text = snappedValue == 0 ? "Duration: not set" : $"Duration: {snappedValue} minutes";
+                int sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
+                sessionTimerSlider.Progress = sessionTimer;
+                sessionTimerValueText.Text = sessionTimer == 0 ? "Duration: not set" : $"Duration: {sessionTimer} minutes";
             };
 
             // buttons
@@ -151,7 +153,7 @@ namespace HourGuard
             intent.AddCategory(Intent.CategoryHome);
             intent.SetFlags(ActivityFlags.NewTask);
             StartActivity(intent);
-            Finish();
+            FinishAndRemoveTask();
         }
     }
 }
