@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="24dp">
-
 	<LinearLayout
         android:id="@+id/dialog_activity"
         android:layout_width="match_parent"
@@ -11,7 +11,30 @@
         android:orientation="vertical"
         android:gravity="center_horizontal"
         android:layout_marginBottom="12dp">
-
+		<!-- Header -->
+		<LinearLayout
+            android:id="@+id/headerLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:spacing="12dp">
+			<TextView
+                android:id="@+id/headerText"
+				android:text="HourGuard"
+				android:textSize="24sp"
+				android:textStyle="bold"
+				android:textAlignment="center"
+				android:textColor="@color/PrimaryDarkText"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"/>
+		</LinearLayout>
+					<View
+				android:layout_width="match_parent"
+				android:layout_height="8dp"
+                android:background="@color/PrimaryDarkText"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"/>
 		<!-- Daily Limit usage -->
 		<TextView
             android:id="@+id/dailyLimitText"
@@ -21,7 +44,6 @@
             android:textColor="@color/PrimaryDarkText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-
 		<!-- Progress bar -->
 		<ProgressBar
             android:id="@+id/dailyLimitProgressBar"
@@ -31,7 +53,6 @@
             android:max="100"
             android:progress="0"
             android:progressTint="@color/Primary" />
-
 		<!-- Streak label -->
 		<TextView
             android:id="@+id/streakText"
@@ -41,7 +62,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp" />
-
 		<!-- Prompt label -->
 		<TextView
             android:id="@+id/continueIntoAppText"
@@ -51,7 +71,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp" />
-
 		<!-- Question label -->
 		<TextView
             android:id="@+id/taskQuestionText"
@@ -61,7 +80,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp" />
-
 		<!-- Answer box -->
 		<EditText
             android:id="@+id/taskAnswerBox"
@@ -72,7 +90,6 @@
             android:textColor="@color/PrimaryDarkText"
             android:backgroundTint="@color/Secondary"
             android:layout_marginTop="12dp" />
-
 		<!-- Session timer -->
 		<TextView
             android:id="@+id/sessionTimerText"
@@ -82,7 +99,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp" />
-
 		<!-- Time slider -->
 		<SeekBar
             android:id="@+id/sessionTimerSlider"
@@ -90,7 +106,6 @@
             android:layout_height="wrap_content"
             android:max="60"
             android:layout_marginTop="8dp" />
-
 		<!-- Time label -->
 		<TextView
             android:id="@+id/sessionTimerLabelText"
@@ -100,7 +115,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp" />
-
 		<!-- Buttons row -->
 		<LinearLayout
             android:id="@+id/buttonLayout"
@@ -110,7 +124,6 @@
             android:gravity="center"
             android:layout_marginTop="16dp"
             android:spacing="12dp">
-
 			<Button
                 android:id="@+id/yesButton"
                 android:text="Continue"
@@ -120,7 +133,6 @@
                 android:layout_height="wrap_content"
 			    android:backgroundTint="@color/Secondary"
 			    android:textColor="@color/SecondaryDarkText"/>
-
 			<Button
                 android:id="@+id/noButton"
                 android:text="Exit"
