@@ -3,7 +3,10 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp">
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="8dp"
+    android:paddingTop="8dp">
 	<LinearLayout
         android:id="@+id/dialog_activity"
         android:layout_width="match_parent"
@@ -22,10 +25,10 @@
 			<TextView
                 android:id="@+id/headerText"
 				android:text="HourGuard"
-				android:textSize="24sp"
+				android:textSize="32sp"
 				android:textStyle="bold"
 				android:textAlignment="center"
-				android:textColor="@color/PrimaryDarkText"
+				android:textColor="@color/Primary"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"/>
 		</LinearLayout>
