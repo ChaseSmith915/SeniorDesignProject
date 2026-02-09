@@ -82,7 +82,8 @@
                 android:textColor="@color/PrimaryDarkText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"/>
+                android:layout_marginTop="12dp"
+		        android:gravity="center_horizontal"/>
 		</LinearLayout>
 		<!-- divider daily limit -->
 		<View
@@ -101,7 +102,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-			android:textStyle="bold"/>
+			android:textStyle="bold"
+			android:gravity="center_horizontal"/>
 		<!-- Question label -->
 		<TextView
             android:id="@+id/taskQuestionText"
@@ -136,7 +138,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="60"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+			android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:thumbOffset="0dp"
+            android:splitTrack="false"
+			android:progressTint="@color/Primary"
+            android:progressBackgroundTint="@color/SecondaryDarkText"
+            android:thumbTint="@color/Primary"/>
 		<!-- Time label -->
 		<TextView
             android:id="@+id/sessionTimerLabelText"
