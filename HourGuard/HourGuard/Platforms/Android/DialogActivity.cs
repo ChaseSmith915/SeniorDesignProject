@@ -29,7 +29,7 @@ namespace HourGuard
             int streak = Intent.GetIntExtra("streak", 0);
 
             // TEMP VARIABLES
-            streak = 16;
+            streak = 216;
             //dailyLimitUsedPercent = 37;
             dailyTimeUsed = new TimeSpan(3, 8, 5);
             dailyTimeLimit = new TimeSpan(23, 59, 59);
@@ -130,7 +130,7 @@ namespace HourGuard
             }
 
             // continue into app
-            continueIntoAppText.Text = $"Do you want to open {appName}?\nYou must complete a task before continuing.";
+            continueIntoAppText.Text = $"You must complete a task before you can open {appName}.";
 
             // task
             var questions = QuestionBank.Questions;
@@ -163,12 +163,12 @@ namespace HourGuard
 
             // session timer
             sessionTimerText.Text = "Optionally, set a session timer:";
-            sessionTimerValueText.Text = "Duration: not set";
+            sessionTimerValueText.Text = "Duration: session timer not set";
             sessionTimerSlider.ProgressChanged += (s, e) =>
             {
                 int sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
                 sessionTimerSlider.Progress = sessionTimer;
-                sessionTimerValueText.Text = sessionTimer == 0 ? "Duration: not set" : $"Duration: {sessionTimer} minutes";
+                sessionTimerValueText.Text = sessionTimer == 0 ? "Duration: session timer not set" : $"Duration: {sessionTimer} minutes";
             };
 
             // buttons

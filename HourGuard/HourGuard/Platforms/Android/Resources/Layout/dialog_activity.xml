@@ -48,21 +48,14 @@
 			android:orientation="vertical"
 			android:gravity="center"
             android:layout_marginBottom="12dp">
-            <!-- Daily Limit Text -->
+            <!-- Daily limit info -->
 			<TextView
                 android:id="@+id/dailyLimitInfoText"
-                android:text="Daily Limit usage"
+                android:text="dailyLimitInfoText"
                 android:textSize="18sp"
                 android:textColor="@color/PrimaryDarkText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-		    <TextView
-                android:id="@+id/dailyLimitText"
-                android:text="Daily Limit usage"
-                android:textSize="14sp"
-                android:textColor="@color/PrimaryDarkText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"/>
 		    <!-- Progress bar -->
 		    <ProgressBar
                 android:id="@+id/dailyLimitProgressBar"
@@ -71,16 +64,25 @@
                 android:layout_height="8dp"
                 android:max="100"
                 android:progress="0"
-                android:progressTint="@color/Primary" />
+                android:progressTint="@color/Primary"
+                android:progressBackgroundTint="@color/SecondaryDarkText"/>
+			<!-- Daily limit usage -->
+            <TextView
+                android:id="@+id/dailyLimitText"
+                android:text="dailyLimitText"
+                android:textSize="14sp"
+                android:textColor="@color/PrimaryDarkText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 		    <!-- Streak label -->
 		    <TextView
                 android:id="@+id/streakText"
-                android:text="You have a 10 day streak"
-                android:textSize="18sp"
+                android:text="streakText"
+                android:textSize="16sp"
                 android:textColor="@color/PrimaryDarkText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="12dp"/>
 		</LinearLayout>
 		<!-- divider daily limit -->
 		<View
@@ -93,56 +95,57 @@
 		<!-- Prompt label -->
 		<TextView
             android:id="@+id/continueIntoAppText"
-            android:text="Do you want to continue?"
+            android:text="continueIntoAppText"
             android:textSize="18sp"
             android:textColor="@color/PrimaryDarkText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="6dp"
+			android:textStyle="bold"/>
 		<!-- Question label -->
 		<TextView
             android:id="@+id/taskQuestionText"
-            android:text="Question here"
-            android:textSize="18sp"
+            android:text="taskQuestionText"
+            android:textSize="16sp"
             android:textColor="@color/PrimaryDarkText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="16dp"/>
 		<!-- Answer box -->
 		<EditText
             android:id="@+id/taskAnswerBox"
-            android:hint="Enter your answer"
+            android:hint="Type answer here"
             android:inputType="text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/PrimaryDarkText"
             android:backgroundTint="@color/Secondary"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="0dp"/>
 		<!-- Session timer -->
 		<TextView
             android:id="@+id/sessionTimerText"
-            android:text="Optionally specify a session timer"
-            android:textSize="18sp"
+            android:text="sessionTimerText"
+            android:textSize="16sp"
             android:textColor="@color/PrimaryDarkText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="16dp"/>
 		<!-- Time slider -->
 		<SeekBar
             android:id="@+id/sessionTimerSlider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="60"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"/>
 		<!-- Time label -->
 		<TextView
             android:id="@+id/sessionTimerLabelText"
-            android:text="Duration: Unlimited"
+            android:text="sessionTimerLabelText"
             android:textSize="16sp"
             android:textColor="@color/PrimaryDarkText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="4dp"/>
 		<!-- Buttons row -->
 		<LinearLayout
             android:id="@+id/buttonLayout"
