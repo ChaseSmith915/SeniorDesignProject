@@ -29,40 +29,64 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"/>
 		</LinearLayout>
-		<!-- divider -->
+		<!-- divider header -->
 		<View
+			android:id="@+id/dividerHeader"
 			android:layout_width="match_parent"
-			android:layout_height="8dp"
+			android:layout_height="2dp"
             android:background="@color/PrimaryDarkText"
             android:layout_marginTop="1dp"
             android:layout_marginBottom="8dp"/>
 		<!-- Daily Limit usage -->
-		<TextView
-            android:id="@+id/dailyLimitText"
-            android:text="Daily Limit usage"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/PrimaryDarkText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-		<!-- Progress bar -->
-		<ProgressBar
-            android:id="@+id/dailyLimitProgressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:max="100"
-            android:progress="0"
-            android:progressTint="@color/Primary" />
-		<!-- Streak label -->
-		<TextView
-            android:id="@+id/streakText"
-            android:text="You have a 10 day streak"
-            android:textSize="18sp"
-            android:textColor="@color/PrimaryDarkText"
-            android:layout_width="match_parent"
+		<LinearLayout
+			android:id="@+id/dailyLimitLayout"
+			android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" />
+			android:orientation="vertical"
+			android:gravity="center"
+            android:layout_marginBottom="12dp">
+            <!-- Daily Limit Text -->
+			<TextView
+                android:id="@+id/dailyLimitInfoText"
+                android:text="Daily Limit usage"
+                android:textSize="18sp"
+                android:textColor="@color/PrimaryDarkText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+		    <TextView
+                android:id="@+id/dailyLimitText"
+                android:text="Daily Limit usage"
+                android:textSize="14sp"
+                android:textColor="@color/PrimaryDarkText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+		    <!-- Progress bar -->
+		    <ProgressBar
+                android:id="@+id/dailyLimitProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="@color/Primary" />
+		    <!-- Streak label -->
+		    <TextView
+                android:id="@+id/streakText"
+                android:text="You have a 10 day streak"
+                android:textSize="18sp"
+                android:textColor="@color/PrimaryDarkText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+		</LinearLayout>
+		<!-- divider daily limit -->
+		<View
+			android:id="@+id/dividerDailyLimit"
+			android:layout_width="match_parent"
+			android:layout_height="1dp"
+            android:background="@color/PrimaryDarkText"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="8dp"/>
 		<!-- Prompt label -->
 		<TextView
             android:id="@+id/continueIntoAppText"

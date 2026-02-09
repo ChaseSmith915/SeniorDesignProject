@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Content.Res;
 using Android.OS;
 using Android.Widget;
+using Javax.Security.Auth;
 using Microsoft.Maui.Platform;
 using static Android.Provider.ContactsContract.CommonDataKinds;
 using static Microsoft.Maui.ApplicationModel.Platform;
@@ -27,22 +28,59 @@ namespace HourGuard
             TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
             int streak = Intent.GetIntExtra("streak", 0);
 
+            // TEMP VARIABLES
+            streak = 16;
+            //dailyLimitUsedPercent = 37;
+            dailyTimeUsed = new TimeSpan(3, 8, 5);
+            dailyTimeLimit = new TimeSpan(23, 59, 59);
+
+            // timespan formatting
+            string timespanFormat(TimeSpan time)
+            {
+                string output = "";
+                if (time.Hours > 1)
+                {
+                    output += time.ToString("%h") + " Hours";
+                }
+                else if (time.Hours == 1)
+                {
+                    output += "1 Hour";
+                }
+                if (time.Hours > 0 && time.Minutes > 0)
+                {
+                    output += " ";
+                }
+                if (time.Minutes > 1)
+                {
+                    output += time.ToString("%m") + " Minutes";
+                }
+                else if (time.Minutes == 1)
+                {
+                    output += "1 Minute";
+                }
+                return output;
+            }
+            string dailyTimeUsedString = timespanFormat(dailyTimeUsed);
+            string dailyTimeLimitString = timespanFormat(dailyTimeLimit);
+
+            // failsafe for app name
             if (appName == null)
             {
-                appName = "THIS APP";
+                appName = "this app";
             }
 
+            // determines percent of time used
             int dailyLimitUsedPercent = (int)Math.Truncate(dailyTimeUsed.TotalSeconds / dailyTimeLimit.TotalSeconds * 100);
-
-            streak = 16;
-            dailyLimitUsedPercent = 37;
 
             // load layout from xml file
             SetContentView(Resource.Layout.dialog_activity);
 
             // set variables
+            var dailyLimitLayout = FindViewById<LinearLayout>(Resource.Id.dailyLimitLayout);
+            var dailyLimitInfoText = FindViewById<TextView>(Resource.Id.dailyLimitInfoText);
             var dailyLimitText = FindViewById<TextView>(Resource.Id.dailyLimitText);
             var dailyLimitProgressBar = FindViewById<Android.Widget.ProgressBar>(Resource.Id.dailyLimitProgressBar);
+            var dividerDailyLimit = FindViewById(Resource.Id.dividerDailyLimit);
             var streakText = FindViewById<TextView>(Resource.Id.streakText);
             var continueIntoAppText = FindViewById<TextView>(Resource.Id.continueIntoAppText);
             var taskQuestionText = FindViewById<TextView>(Resource.Id.taskQuestionText);
@@ -61,29 +99,38 @@ namespace HourGuard
             Android.Content.Res.ColorStateList colorSecondaryDarkText = Android.Content.Res.ColorStateList.ValueOf(new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.SecondaryDarkText)));
 
             // daily limit usage
-            dailyLimitText.Text = $"Daily time limit usage: {dailyTimeUsed} of {dailyTimeLimit}";
-            if (dailyLimitUsedPercent >= 100)
+            if (dailyTimeLimit > new TimeSpan(0))
             {
-                dailyLimitProgressBar.Progress = 100;
-                dailyLimitProgressBar.ProgressTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Red);
-            }
-            else
-            {
-                dailyLimitProgressBar.Progress = dailyLimitUsedPercent;
-            }
+                dailyLimitInfoText.Text = "Daily time limit usage:";
+                dailyLimitText.Text = $"{dailyTimeUsedString} of {dailyTimeLimitString}";
+                if (dailyLimitUsedPercent >= 100)
+                {
+                    dailyLimitProgressBar.Progress = 100;
+                    dailyLimitProgressBar.ProgressTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Red);
+                }
+                else
+                {
+                    dailyLimitProgressBar.Progress = dailyLimitUsedPercent;
+                }
 
-            // streak info
-            if (streak == 0)
-            {
-                streakText.Text = $"You do not have an active streak :(";
+                // streak info
+                if (streak == 0)
+                {
+                    streakText.Text = $"You do not have an active streak :(";
+                }
+                else
+                {
+                    streakText.Text = $"You currently have a {streak} day streak!";
+                }
             }
             else
             {
-                streakText.Text = $"You currently have a {streak} day streak!";
+                dailyLimitLayout.RemoveAllViews();
+                dividerDailyLimit.RemoveFromParent();
             }
 
             // continue into app
-            continueIntoAppText.Text = $"Do you want to continue into {appName}?\nYou must complete a task before continuing.";
+            continueIntoAppText.Text = $"Do you want to open {appName}?\nYou must complete a task before continuing.";
 
             // task
             var questions = QuestionBank.Questions;
