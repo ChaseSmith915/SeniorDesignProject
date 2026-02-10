@@ -160,13 +160,16 @@ namespace HourGuard.Platforms.Android
                     // Only proceed if the app has an entry in app settings and is enabled
                     if (db.IsEnabledAsync(currentForegroundApp).Result)
                     {
+                        // Gets readable app name
+                        string appName = AndroidAppUtils.GetAppNameFromPackage(currentForegroundApp);
+
                         Log.Debug(TAG, $"Targeted app recognized: {currentForegroundApp}");
                         // Show popup if a *new* app has come to the foreground, otherwise incriment timer
                         if (currentForegroundApp != lastForegroundApp)
                         {
                             Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
                             // App was opened! Show the popup.
-                            ShowPopup();
+                            ShowPopup(appName);
 
                             // Update the last known app
                             lastForegroundApp = currentForegroundApp;
@@ -182,12 +185,12 @@ namespace HourGuard.Platforms.Android
                             {
                                 Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
                                 //TODO: New popup for daily limit reached (add text to it?)
-                                ShowPopup();
+                                ShowPopup(appName);
                             }
                             else if (timerStatuses.sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                             {
                                 Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
-                                ShowPopup();
+                                ShowPopup(appName);
                             }
                             else if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
                             {
@@ -208,11 +211,23 @@ namespace HourGuard.Platforms.Android
             }
         }
 
-        private void ShowPopup()
+        private void ShowPopup(string? appName = null, TimeSpan? dailyTimeUsed = null, TimeSpan? dailyTimeLimit = null, int? streak = null)
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
             popupIntent.AddFlags(ActivityFlags.NewTask);
+            popupIntent.PutExtra("appName", appName);
+            if (dailyTimeUsed.HasValue)
+            {
+                long dailyTimeUsedMillis = (long)dailyTimeUsed.Value.TotalMilliseconds;
+                popupIntent.PutExtra("dailyTimeUsed", dailyTimeUsedMillis);
+            }
+            if (dailyTimeLimit.HasValue)
+            {
+                long dailyTimeLimitMillis = (long)dailyTimeLimit.Value.TotalMilliseconds;
+                popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
+            }
+            popupIntent.PutExtra("streak", streak ?? 0);
             StartActivity(popupIntent);
         }
 
