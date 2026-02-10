@@ -201,6 +201,11 @@ namespace HourGuard
             yesButton.Text = "Continue";
             yesButton.Click += (s, e) =>
             {
+                //var launchIntent = PackageManager.GetLaunchIntentForPackage("com.android.chrome");
+
+                //launchIntent.AddFlags(ActivityFlags.NewTask);
+                //StartActivity(launchIntent);
+
                 FinishAndRemoveTask();
             };
             noButton.Text = "Exit";
