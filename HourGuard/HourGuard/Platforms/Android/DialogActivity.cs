@@ -4,6 +4,7 @@ using Android.Content.Res;
 using Android.OS;
 using Android.Widget;
 using Javax.Security.Auth;
+using Kotlin.IO.Encoding;
 using Microsoft.Maui.Platform;
 using static Android.Provider.ContactsContract.CommonDataKinds;
 using static Microsoft.Maui.ApplicationModel.Platform;
@@ -29,10 +30,9 @@ namespace HourGuard
             int streak = Intent.GetIntExtra("streak", 0);
 
             // TEMP VARIABLES
-            streak = 216;
-            //dailyLimitUsedPercent = 37;
-            dailyTimeUsed = new TimeSpan(3, 8, 5);
-            dailyTimeLimit = new TimeSpan(23, 59, 59);
+            streak = -1;
+            dailyTimeUsed = new TimeSpan(1, 1, 0);
+            dailyTimeLimit = new TimeSpan(1, 0, 0);
 
             // timespan formatting
             string timespanFormat(TimeSpan time)
@@ -113,17 +113,43 @@ namespace HourGuard
                     dailyLimitProgressBar.Progress = dailyLimitUsedPercent;
                 }
 
-                // streak info
-                if (streak == 0)
+                // streaks
+                if (streak > 0 && dailyLimitUsedPercent == 100)
                 {
-                    streakText.Text = $"You do not have an active streak :(";
+                    streakText.Text = $"If you continue, you will lose your {streak} day streak! Exit now to keep your streak.";
                 }
-                else
+                else if (streak > 0 && dailyLimitUsedPercent > 100)
+                {
+                    streakText.Text = "This text should never show, because it means you went over your limit but your streak was not removed :(";
+                }
+                else if (streak > 0)
                 {
                     streakText.Text = $"You currently have a {streak} day streak!";
                 }
+                else if (streak == 0 && dailyLimitUsedPercent == 100)
+                {
+                    streakText.Text = "You do not have an active streak. If you continue, you will not start a new streak today.";
+                }
+                else if (streak == 0 && dailyLimitUsedPercent > 100)
+                {
+                    streakText.Text = "You do not have an active streak and you went over your time limit. You will not start a new streak today.";
+                }
+                else if (streak == 0)
+                {
+                    streakText.Text = "You do not have an active streak. Stay under your time limit to start a new one today!";
+                }
+                else if (streak < 0)
+                {
+                    // streak should be set to -1 on the day it is broken, then incremented back to 0 the next day
+                    streakText.Text = "You lost your streak today. Start a new one tomorrow!";
+                }
+                else
+                {
+                    // this should never be reached
+                    streakText.Text = "How did we get here?";
+                }
             }
-            else
+            else // remove section if no daily limit is set
             {
                 dailyLimitLayout.RemoveAllViews();
                 dividerDailyLimit.RemoveFromParent();
