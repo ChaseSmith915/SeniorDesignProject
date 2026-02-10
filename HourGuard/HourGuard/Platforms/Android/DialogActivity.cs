@@ -91,6 +91,11 @@ namespace HourGuard
             {
                 Hint = "Enter your answer"
             };
+            answerBox.SetFilters(new Android.Text.IInputFilter[]
+            {
+                new Android.Text.InputFilterLengthFilter(16),
+                new AllowedCharacterFilter()
+            });
             layout.AddView(answerBox);
 
             // Optionally specify a session timer (placeholder for now)
