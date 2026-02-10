@@ -7,8 +7,8 @@ namespace HourGuard
 {
     public class Question
     {
-        public string Text { get; set; }
-        public string CorrectAnswer { get; set; }
+        public string question { get; set; }
+        public string correctAnswer { get; set; }
     }
 
     public static class QuestionBank
