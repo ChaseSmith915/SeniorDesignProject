@@ -167,20 +167,9 @@ namespace HourGuard.Platforms.Android
                         // Show popup if a *new* app has come to the foreground, otherwise incriment timer
                         if (currentForegroundApp != lastForegroundApp)
                         {
-<<<<<<< HEAD
                             Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
                             // App was opened! Show the popup.
                             ShowPopup(appName);
-=======
-                            Log.Debug(TAG, "APP MATCH FOUND! Displaying popup."); // NEW LOG: Match confirmed
-
-                            // Gets readable app name
-                            string appName = AndroidAppUtils.GetAppNameFromPackage(currentForegroundApp);
-
-                            // App was opened! Show the popup.
-                            ShowPopup(appName);
-                        }
->>>>>>> PopupCleanup
 
                             // Update the last known app
                             lastForegroundApp = currentForegroundApp;
