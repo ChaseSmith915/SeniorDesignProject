@@ -9,6 +9,7 @@ using AndroidX.Core.App;
 using System.Linq; // Required for OrderByDescending and Any()
 using System.Threading;
 using HourGuard.Database;
+using Microsoft;
 
 namespace HourGuard.Platforms.Android
 {
@@ -46,7 +47,7 @@ namespace HourGuard.Platforms.Android
             var notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .SetContentTitle("Time Management Active")
                 .SetContentText("Monitoring app usage...")
-                .SetSmallIcon(Resource.Mipmap.appicon) // Use your app's icon
+                .SetSmallIcon(Microsoft.Maui.Controls.Resource.Mipmap.appicon) // Use your app's icon
                 .SetOngoing(true)
                 .Build();
 
