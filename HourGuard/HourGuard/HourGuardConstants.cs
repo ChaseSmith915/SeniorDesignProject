@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 public static class HourGuardConstants
 {
-    public const string TARGETED_APPS_FILE_NAME = "Targeted_Apps";
+    public const string APP_NAME = "HourGuard";
 }

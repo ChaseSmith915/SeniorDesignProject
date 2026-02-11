@@ -5,15 +5,16 @@ using Android.Graphics.Drawables;
 using Microsoft.Maui.Dispatching;
 using System.Collections.ObjectModel;
 
+using Android.Graphics;
+
+using HourGuard.Database;
+
 namespace HourGuard
 {
     public partial class TargetApps : ContentPage
     {
-        private readonly MainPage mainPage;
-        private readonly ISharedPreferences preferences =
-            Android.App.Application.Context.GetSharedPreferences(
-                HourGuardConstants.TARGETED_APPS_FILE_NAME,
-                FileCreationMode.Private);
+        private MainPage mainPage;
+        private HourGuardDatabase db = App.Database;
 
         public ObservableCollection<AppItem> Apps { get; } = new();
 
@@ -26,7 +27,7 @@ namespace HourGuard
             InitializeComponent();
 
             this.mainPage = mainPage;
-            this.targetedApps = preferences.All.Keys.ToArray();
+            this.targetedApps = db.GetAllSettingsAsync().Result.Select(s => s.PackageName).ToArray();
 
             BindingContext = this;
 
@@ -151,9 +152,7 @@ namespace HourGuard
 
         private void TargetNewApp(AppItem item)
         {
-            preferences.Edit().PutBoolean(item.PackageName, true).Apply();
-
-            mainPage.AddTargetedApp(item.Name, item.PackageName);
+            db.SaveSettingAsync(new AppSettings{PackageName = item.PackageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(5)}).Wait();
 
             Navigation.PopAsync();
         }
