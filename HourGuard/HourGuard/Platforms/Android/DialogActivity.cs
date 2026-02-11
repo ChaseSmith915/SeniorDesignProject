@@ -30,9 +30,9 @@ namespace HourGuard
             int streak = Intent.GetIntExtra("streak", 0);
 
             // TEMP VARIABLES
-            streak = -1;
-            dailyTimeUsed = new TimeSpan(1, 1, 0);
-            dailyTimeLimit = new TimeSpan(1, 0, 0);
+            streak = 7;
+            //dailyTimeUsed = new TimeSpan(1, 1, 0);
+            //dailyTimeLimit = new TimeSpan(1, 0, 0);
 
             // timespan formatting
             string timespanFormat(TimeSpan time)

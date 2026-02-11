@@ -169,7 +169,7 @@ namespace HourGuard.Platforms.Android
                         {
                             Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
                             // App was opened! Show the popup.
-                            ShowPopup(appName);
+                            ShowPopup(appName, appTimers[currentForegroundApp].GetDailyTimeUsed(), appTimers[currentForegroundApp].GetDailyTimeLimit());
 
                             // Update the last known app
                             lastForegroundApp = currentForegroundApp;
@@ -179,18 +179,21 @@ namespace HourGuard.Platforms.Android
                             (int dailyTimerStatus, int sessionTimerStatus) timerStatuses = appTimers[currentForegroundApp].TickTimers(TimeSpan.FromSeconds(TICK_INTERVAL_SEC));
                             saveUsageSnapshot();
 
-                            Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}. Daily Status: {timerStatuses.dailyTimerStatus}, Session Status: {timerStatuses.sessionTimerStatus}"); // NEW LOG: Timer status
+                            TimeSpan dailyTimeLimit = appTimers[currentForegroundApp].GetDailyTimeLimit();
+                            TimeSpan dailyTimeUsed = appTimers[currentForegroundApp].GetDailyTimeUsed();
+
+                            Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}. Daily time: {dailyTimeUsed.TotalMinutes}/{dailyTimeLimit.TotalMinutes} minutes, Daily Status: {timerStatuses.dailyTimerStatus}, Session Status: {timerStatuses.sessionTimerStatus}"); // NEW LOG: Timer status
 
                             if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                             {
                                 Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
                                 //TODO: New popup for daily limit reached (add text to it?)
-                                ShowPopup(appName);
+                                ShowPopup(appName, dailyTimeUsed, dailyTimeLimit);
                             }
                             else if (timerStatuses.sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                             {
                                 Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
-                                ShowPopup(appName);
+                                ShowPopup(appName, dailyTimeUsed, dailyTimeLimit);
                             }
                             else if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
                             {
@@ -198,6 +201,11 @@ namespace HourGuard.Platforms.Android
                                 //TODO: Call warning popup for daily limit approaching
                             }
                         }
+                    }
+                    else
+                    {
+                        // Update the last known app
+                        lastForegroundApp = currentForegroundApp;
                     }
                 }
                 else

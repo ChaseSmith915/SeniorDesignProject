@@ -147,7 +147,7 @@ namespace HourGuard
         // When an app button is clicked, add it to the targeted apps list and return to main page
         private void TargetNewApp(object sender, EventArgs e, string appName, string packageName)
         {
-            db.SaveSettingAsync(new AppSettings{PackageName = packageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(1)}).Wait();
+            db.SaveSettingAsync(new AppSettings{PackageName = packageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(5)}).Wait();
 
             this.mainPage.AddTargetedApp(appName, packageName);
             Navigation.PopAsync();
