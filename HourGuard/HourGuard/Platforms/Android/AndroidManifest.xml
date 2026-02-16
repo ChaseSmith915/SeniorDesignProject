@@ -15,12 +15,5 @@
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:supportsRtl="true" android:label="HourGuard" android:theme="@style/Maui.SplashTheme">
 		<!-- Popup Activity -->
 		<activity android:name="HourGuard.Platforms.Android.PopupActivity" android:enabled="true" android:exported="false" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:launchMode="singleTask" android:taskAffinity="" />
-
-		<!-- Ensure receiver is declared so BOOT_COMPLETED is delivered -->
-		<receiver android:name="HourGuard.Platforms.Android.BootReceiver" android:enabled="true" android:exported="true">
-			<intent-filter>
-				<action android:name="android.intent.action.BOOT_COMPLETED" />
-			</intent-filter>
-		</receiver>
 	</application>
 </manifest>
