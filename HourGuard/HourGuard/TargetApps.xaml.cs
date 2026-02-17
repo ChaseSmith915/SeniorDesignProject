@@ -152,7 +152,8 @@ namespace HourGuard
 
         private void TargetNewApp(AppItem item)
         {
-            db.SaveSettingAsync(new AppSettings{PackageName = item.PackageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(5)}).Wait();
+            db.SaveSettingAsync(new AppSettings{PackageName = item.PackageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(1)}).Wait();
+            this.mainPage.AddTargetedApp(item.Name, item.PackageName);
 
             Navigation.PopAsync();
         }
