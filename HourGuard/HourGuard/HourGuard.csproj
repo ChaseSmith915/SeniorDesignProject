@@ -58,6 +58,7 @@
 
 	<ItemGroup>
 	  <None Remove="Platforms\Android\Resources\Layout\dialog_activity.xml" />
+	  <None Remove="Platforms\Android\Resources\Layout\time_warning_popup.xml" />
 	  <None Remove="Platforms\Android\Resources\values\strings.xml" />
 	  <None Remove="Platforms\Android\Resources\values\styles.xml" />
 	  <None Remove="Platforms\Android\Resources\xml\accessibility_service_config.xml" />

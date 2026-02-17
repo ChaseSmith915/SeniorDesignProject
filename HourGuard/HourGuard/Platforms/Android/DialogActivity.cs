@@ -64,15 +64,13 @@ namespace HourGuard
             string dailyTimeLimitString = timespanFormat(dailyTimeLimit);
 
             // get app name
-            if (!appPackageName == null)
-            {
-                string appName = AndroidAppUtils.GetAppNameFromPackage(appPackageName);
-            }
-
-            // failsafe for app name
-            if (appName == null)
-            {
+            string appName = "this app";
+            if (appPackageName == null) {
                 appName = "this app";
+            }
+            else
+            {
+                appName = AndroidAppUtils.GetAppNameFromPackage(appPackageName);
             }
 
             // determines percent of time used

@@ -236,6 +236,15 @@ namespace HourGuard.Platforms.Android
             StartActivity(popupIntent);
         }
 
+
+        private void ShowWarningPopup(string? appPackageName = null)
+        {
+            Intent popupIntent = new Intent(this, typeof(TimeWarningPopup));
+            popupIntent.AddFlags(ActivityFlags.NewTask);
+            popupIntent.PutExtra("appPackageName", appPackageName);
+            StartActivity(popupIntent);
+        }
+
         private void CreateNotificationChannel()
         {
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
