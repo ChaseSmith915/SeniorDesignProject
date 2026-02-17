@@ -22,7 +22,7 @@ namespace HourGuard
             SetFinishOnTouchOutside(false);
 
             // grabs arguments
-            string appName = Intent.GetStringExtra("appName");
+            string appPackageName = Intent.GetStringExtra("appPackageName");
             long dailyTimeUsedMillis = Intent.GetLongExtra("dailyTimeUsedMillis", 0);
             TimeSpan dailyTimeUsed = TimeSpan.FromMilliseconds(dailyTimeUsedMillis);
             long dailyTimeLimitMillis = Intent.GetLongExtra("dailyTimeLimitMillis", 0);
@@ -63,10 +63,14 @@ namespace HourGuard
             string dailyTimeUsedString = timespanFormat(dailyTimeUsed);
             string dailyTimeLimitString = timespanFormat(dailyTimeLimit);
 
-            // failsafe for app name
-            if (appName == null)
-            {
+            // get app name
+            string appName = "this app";
+            if (appPackageName == null) {
                 appName = "this app";
+            }
+            else
+            {
+                appName = AndroidAppUtils.GetAppNameFromPackage(appPackageName);
             }
 
             // determines percent of time used
@@ -201,10 +205,12 @@ namespace HourGuard
             yesButton.Text = "Continue";
             yesButton.Click += (s, e) =>
             {
-                //var launchIntent = PackageManager.GetLaunchIntentForPackage("com.android.chrome");
-
-                //launchIntent.AddFlags(ActivityFlags.NewTask);
-                //StartActivity(launchIntent);
+                //if (!appPackageName == null)
+                //{
+                //    var launchIntent = PackageManager.GetLaunchIntentForPackage(appPackageName);
+                //    launchIntent.AddFlags(ActivityFlags.NewTask);
+                //    StartActivity(launchIntent);
+                //}
 
                 FinishAndRemoveTask();
             };
