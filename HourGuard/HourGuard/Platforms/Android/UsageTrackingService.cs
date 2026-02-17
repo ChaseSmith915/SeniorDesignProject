@@ -195,8 +195,7 @@ namespace HourGuard.Platforms.Android
                             else if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
                             {
                                 Log.Debug(TAG, $"Daily time limit warning for {currentForegroundApp}.");
-
-                                //TODO: Call warning popup for daily limit approaching
+                                ShowWarningPopup(currentForegroundApp);
                             }
                         }
                     }
