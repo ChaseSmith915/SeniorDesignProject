@@ -4,12 +4,35 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="HourGuard.TargetApps">
 
-    <ScrollView>
-        <VerticalStackLayout
-            Padding="30"
-            Spacing="10"
-            x:Name="AppStack">
-        
-        </VerticalStackLayout>
-    </ScrollView>
+    <CollectionView x:Name="AppListView"
+                    ItemsLayout="VerticalList"
+                    Margin="20">
+
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Grid ColumnDefinitions="50,*,100"
+                      Padding="10"
+                      Margin="0,5">
+
+                    <Image Grid.Column="0"
+                           Source="{Binding Icon}"
+                           HeightRequest="40"
+                           WidthRequest="40"
+                           VerticalOptions="Center" />
+
+                    <Label Grid.Column="1"
+                           Text="{Binding Name}"
+                           VerticalOptions="Center"
+                           FontSize="16"
+                           Padding="10,0" />
+
+                    <Button Grid.Column="2"
+                            Text="Target app"
+                            Command="{Binding Source={x:Reference AppListView}, Path=BindingContext.TargetCommand}"
+                            CommandParameter="{Binding}" />
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+
+    </CollectionView>
 </ContentPage>

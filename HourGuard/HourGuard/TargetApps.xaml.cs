@@ -1,62 +1,104 @@
-﻿using Android.Content.PM;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Android.App.ActivityManager;
+﻿using Android.Content;
+using Android.Content.PM;
+using Android.Graphics;
 using Android.Graphics.Drawables;
+using Microsoft.Maui.Dispatching;
+using System.Collections.ObjectModel;
 
 using Android.Graphics;
 
-
-#if ANDROID
-using Android.Content;
-#endif
+using HourGuard.Database;
 
 namespace HourGuard
 {
     public partial class TargetApps : ContentPage
     {
         private MainPage mainPage;
-        private ISharedPreferences preferences = Android.App.Application.Context.GetSharedPreferences(HourGuardConstants.TARGETED_APPS_FILE_NAME, FileCreationMode.Private);
+        private HourGuardDatabase db = App.Database;
+
+        public ObservableCollection<AppItem> Apps { get; } = new();
+
+        public Command<AppItem> TargetCommand { get; }
 
         private string[] targetedApps;
 
         public TargetApps(MainPage mainPage)
         {
-            this.mainPage = mainPage;
-            this.targetedApps = preferences.All.Keys.ToArray();
-
             InitializeComponent();
-            InitializeAppList();
+
+            this.mainPage = mainPage;
+            this.targetedApps = db.GetAllSettingsAsync().Result.Select(s => s.PackageName).ToArray();
+
+            BindingContext = this;
+
+            TargetCommand = new Command<AppItem>(TargetNewApp);
+
+            LoadApps();
         }
 
-        // Initialize the list of installed apps as buttons
-        private void InitializeAppList()
+        private async void LoadApps()
         {
-            PackageManager pm = Android.App.Application.Context.PackageManager;
-
-            List<ApplicationInfo> installedApps = pm.GetInstalledApplications(PackageInfoFlags.MatchAll)
-                .OrderBy(app => app.LoadLabel(pm)?.ToString())
-                .ToList();
-
-            foreach (ApplicationInfo appInfo in installedApps)
+            await Task.Run(() =>
             {
-                string appName = appInfo.LoadLabel(pm)?.ToString();
-                string packageName = appInfo.PackageName;
-                ImageSource appIcon = GetAppIcon(appInfo);
+                var pm = Android.App.Application.Context.PackageManager;
 
-                if (ShouldNotDisplayApp(appName, packageName))
+                var installedApps = pm.GetInstalledApplications(PackageInfoFlags.MatchAll)
+                    .OrderBy(app => app.LoadLabel(pm)?.ToString())
+                    .ToList();
+
+                foreach (var appInfo in installedApps)
                 {
-                    continue;
-                }
+                    string appName = appInfo.LoadLabel(pm)?.ToString();
+                    string packageName = appInfo.PackageName;
 
-                AppStack.Add(CreateAppRow(appName, packageName, appIcon));
-            }
+                    if (ShouldNotDisplayApp(appInfo, appName, packageName))
+                        continue;
+
+                    var icon = GetAppIcon(appInfo);
+
+                    var item = new AppItem
+                    {
+                        Name = appName,
+                        PackageName = packageName,
+                        Icon = icon
+                    };
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        Apps.Add(item);
+                    });
+                }
+            });
+
+            AppListView.ItemsSource = Apps;
         }
 
-        // Retrieves the app icon as an ImageSource (if it has an icon)
+        private bool ShouldNotDisplayApp(ApplicationInfo appInfo, string appName, string packageName)
+        {
+            var pm = Android.App.Application.Context.PackageManager;
+
+            if (string.IsNullOrEmpty(appName))
+                return true;
+
+            if (packageName.Equals(Android.App.Application.Context.PackageName))
+                return true;
+
+            if (targetedApps.Contains(packageName))
+                return true;
+
+            // Check if app appears in the launcher
+            Intent intent = new Intent(Intent.ActionMain);
+            intent.AddCategory(Intent.CategoryLauncher);
+
+            var launchableApps = pm.QueryIntentActivities(intent, 0);
+            bool isLaunchable = launchableApps.Any(a => a.ActivityInfo.PackageName == packageName);
+
+            if (!isLaunchable)
+                return true;
+
+            return false;
+        }
+
         private ImageSource GetAppIcon(ApplicationInfo appInfo)
         {
             try
@@ -66,88 +108,53 @@ namespace HourGuard
 
                 if (iconDrawable is BitmapDrawable bitmapDrawable)
                 {
-                    Bitmap bitmap = bitmapDrawable.Bitmap;
-                    return ImageSource.FromStream(() =>
-                    {
-                        var stream = new MemoryStream();
-                        bitmap.Compress(Bitmap.CompressFormat.Png, 100, stream);
-                        stream.Position = 0;
-                        return stream;
-                    });
+                    return BitmapToImageSource(bitmapDrawable.Bitmap);
                 }
-                return null;
+
+                if (iconDrawable is AdaptiveIconDrawable adaptive)
+                {
+                    var bitmap = DrawableToBitmap(adaptive);
+                    return BitmapToImageSource(bitmap);
+                }
             }
             catch
             {
-                return null;
+                // Ignore icon failures
             }
+
+            return ImageSource.FromFile("default_app_icon.png");
         }
 
-        // Returns true if the app should NOT be displayed in the list
-        private bool ShouldNotDisplayApp(string appName, string packageName)
+        private Bitmap DrawableToBitmap(Drawable drawable)
         {
-            if (string.IsNullOrEmpty(appName)) return true;
-            if (appName.Equals("HourGuard", StringComparison.OrdinalIgnoreCase)) return true;
-            if (appName.StartsWith("com.", StringComparison.OrdinalIgnoreCase)) return true;
-            if (targetedApps.Contains(packageName)) return true;
-            return false;
+            Bitmap bitmap = Bitmap.CreateBitmap(
+                drawable.IntrinsicWidth > 0 ? drawable.IntrinsicWidth : 100,
+                drawable.IntrinsicHeight > 0 ? drawable.IntrinsicHeight : 100,
+                Bitmap.Config.Argb8888);
+
+            Canvas canvas = new Canvas(bitmap);
+            drawable.SetBounds(0, 0, canvas.Width, canvas.Height);
+            drawable.Draw(canvas);
+
+            return bitmap;
         }
 
-        // Creates a row of the listed apps with the icon, name, and a select button
-        private Grid CreateAppRow(string appName, string packageName, ImageSource appIcon)
+        private ImageSource BitmapToImageSource(Bitmap bitmap)
         {
-            Grid appRow = new Grid
+            return ImageSource.FromStream(() =>
             {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = new GridLength(50) },
-                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
-                    new ColumnDefinition { Width = new GridLength(100) }
-                },
-                RowDefinitions =
-                {
-                    new RowDefinition { Height = GridLength.Auto }
-                },
-                Margin = new Thickness(0, 5),
-                Padding = new Thickness(10, 5)
-            };
-
-            Image appImage = new Image
-            {
-                Source = appIcon,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center
-            };
-
-            Label appLabel = new Label
-            {
-                Text = appName,
-                VerticalOptions = LayoutOptions.Center,
-                FontSize = 16,
-                Padding = new Thickness(10, 0)
-            };
-
-            Button selectButton = new Button
-            {
-                Text = "Target app",
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center
-            };
-            selectButton.Clicked += (s, e) => TargetNewApp(s, e, appName, packageName);
-
-            appRow.Add(appImage, 0, 0);
-            appRow.Add(appLabel, 1, 0);
-            appRow.Add(selectButton, 2, 0);
-
-            return appRow;
+                var stream = new MemoryStream();
+                bitmap.Compress(Bitmap.CompressFormat.Png, 100, stream);
+                stream.Position = 0;
+                return stream;
+            });
         }
 
-        // When an app button is clicked, add it to the targeted apps list and return to main page
-        private void TargetNewApp(object sender, EventArgs e, string appName, string packageName)
+        private void TargetNewApp(AppItem item)
         {
-            preferences.Edit().PutBoolean(packageName, true).Apply();
+            db.SaveSettingAsync(new AppSettings{PackageName = item.PackageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(1)}).Wait();
+            this.mainPage.AddTargetedApp(item.Name, item.PackageName);
 
-            this.mainPage.AddTargetedApp(appName, packageName);
             Navigation.PopAsync();
         }
     }
