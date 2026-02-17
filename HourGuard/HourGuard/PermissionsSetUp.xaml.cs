@@ -31,20 +31,28 @@ namespace HourGuard
         private void OnStartServiceClicked(object sender, EventArgs e)
         {
 #if ANDROID
-            Log.Debug("MainPage", "Start Service button clicked.");
+            Log.Debug("PermissionsSetUp", "Start Service button clicked.");
             var context = Android.App.Application.Context;
             var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
             context.StartForegroundService(serviceIntent);
+
+            // Persist that the service should run after reboot
+            var prefs = context.GetSharedPreferences("HourGuardPrefs", FileCreationMode.Private);
+            prefs.Edit().PutBoolean("ServiceEnabled", true).Apply();
 #endif
         }
 
         private void OnStopServiceClicked(object sender, EventArgs e)
         {
 #if ANDROID
-            Log.Debug("MainPage", "Stop Service button clicked.");
+            Log.Debug("PermissionsSetUp", "Stop Service button clicked.");
             var context = Android.App.Application.Context;
             var serviceIntent = new Intent(context, typeof(Platforms.Android.UsageTrackingService));
             context.StopService(serviceIntent);
+
+            // Persist that the service should NOT run after reboot
+            var prefs = context.GetSharedPreferences("HourGuardPrefs", FileCreationMode.Private);
+            prefs.Edit().PutBoolean("ServiceEnabled", false).Apply();
 #endif
         }
 

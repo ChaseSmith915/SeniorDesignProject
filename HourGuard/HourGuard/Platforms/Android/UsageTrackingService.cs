@@ -148,14 +148,13 @@ namespace HourGuard.Platforms.Android
                     var sortedStats = stats.OrderByDescending(s => s.LastTimeUsed);
                     string currentForegroundApp = sortedStats.First()?.PackageName;
 
-                    if (currentForegroundApp == "com.SeniorDesign.HourGuard")
+                    // If there is no forground app or hourguard is in the foreground then don't tick
+                    if (string.IsNullOrEmpty(currentForegroundApp) || currentForegroundApp == "com.SeniorDesign.HourGuard")
                     {
-                        currentForegroundApp = sortedStats.Skip(1).First()?.PackageName;
+                        return;
                     }
 
                     Log.Debug(TAG, $"FOREGROUND APP DETECTED: {currentForegroundApp}"); // NEW LOG: Log the detected app
-
-                    if (string.IsNullOrEmpty(currentForegroundApp)) return;
 
                     // Only proceed if the app has an entry in app settings and is enabled
                     if (db.IsEnabledAsync(currentForegroundApp).Result)
@@ -184,7 +183,6 @@ namespace HourGuard.Platforms.Android
                             if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                             {
                                 Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
-                                //TODO: New popup for daily limit reached (add text to it?)
                                 ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
                             }
                             else if (timerStatuses.sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
