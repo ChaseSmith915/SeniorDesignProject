@@ -217,8 +217,8 @@
     "difficulty": "hard"
   },
   {
-    "question": "In which year did the Titanic sink?",
-    "correctAnswer": "1912",
+    "question": "How many sides does a heptagon have?",
+    "correctAnswer": "7",
     "difficulty": "hard"
   },
   {
@@ -242,13 +242,13 @@
     "difficulty": "hard"
   },
   {
-    "question": "How many degrees are in a circle?",
-    "correctAnswer": "360",
+    "question": "An side of an equilateral trinagle has a length of 4. What is the perimeter?",
+    "correctAnswer": "12",
     "difficulty": "hard"
   },
   {
-    "question": "Who discovered penicillin?",
-    "correctAnswer": "Alexander Fleming",
+    "question": "What is 25 percent of 80?",
+    "correctAnswer": "20",
     "difficulty": "hard"
   },
   {
@@ -257,8 +257,8 @@
     "difficulty": "hard"
   },
   {
-    "question": "How many bones are in an adult human body?",
-    "correctAnswer": "206",
+    "question": "What is the third largest country in the world by area?",
+    "correctAnswer": "China",
     "difficulty": "hard"
   },
   {
@@ -277,13 +277,13 @@
     "difficulty": "hard"
   },
   {
-    "question": "What is the capital of Australia?",
-    "correctAnswer": "Canberra",
+    "question": "Do polar bears live in the north or south pole?",
+    "correctAnswer": "North",
     "difficulty": "hard"
   },
   {
-    "question": "Who was the first woman to win a Nobel Prize?",
-    "correctAnswer": "Marie Curie",
+    "question": "What scientest invented the theory of relativity?",
+    "correctAnswer": "Albert Einstein",
     "difficulty": "hard"
   },
   {
@@ -297,8 +297,8 @@
     "difficulty": "hard"
   },
   {
-    "question": "In what year did the Berlin Wall fall?",
-    "correctAnswer": "1989",
+    "question": "What is the largest state in the United States?",
+    "correctAnswer": "Alaska",
     "difficulty": "hard"
   }
 ]
