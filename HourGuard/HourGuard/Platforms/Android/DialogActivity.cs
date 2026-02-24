@@ -23,9 +23,9 @@ namespace HourGuard
 
             // grabs arguments
             string appPackageName = Intent.GetStringExtra("appPackageName");
-            long dailyTimeUsedMillis = Intent.GetLongExtra("dailyTimeUsedMillis", 0);
+            double dailyTimeUsedMillis = Intent.GetDoubleExtra("dailyTimeUsed", 0);
             TimeSpan dailyTimeUsed = TimeSpan.FromMilliseconds(dailyTimeUsedMillis);
-            long dailyTimeLimitMillis = Intent.GetLongExtra("dailyTimeLimitMillis", 0);
+            double dailyTimeLimitMillis = Intent.GetDoubleExtra("dailyTimeLimit", 0);
             TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
             int streak = Intent.GetIntExtra("streak", 0);
 
@@ -103,10 +103,10 @@ namespace HourGuard
             Android.Content.Res.ColorStateList colorSecondaryDarkText = Android.Content.Res.ColorStateList.ValueOf(new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.SecondaryDarkText)));
 
             // daily limit usage
-            if (dailyTimeLimit > new TimeSpan(0))
+            if ( 1 == 1) //dailyTimeLimit > new TimeSpan(0))
             {
                 dailyLimitInfoText.Text = "Daily time limit usage:";
-                dailyLimitText.Text = $"{dailyTimeUsedString} of {dailyTimeLimitString}";
+                dailyLimitText.Text = $"{dailyTimeUsed} of {dailyTimeLimit}";
                 if (dailyLimitUsedPercent >= 100)
                 {
                     dailyLimitProgressBar.Progress = 100;

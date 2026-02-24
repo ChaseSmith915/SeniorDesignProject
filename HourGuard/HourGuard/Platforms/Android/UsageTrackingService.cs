@@ -223,14 +223,17 @@ namespace HourGuard.Platforms.Android
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
             popupIntent.AddFlags(ActivityFlags.NewTask);
             popupIntent.PutExtra("appPackageName", appPackageName);
+
+            TimeSpan dailyTimeLimitInternal = (TimeSpan)dailyTimeLimit;
+            TimeSpan dailyTimeUsedInternal = (TimeSpan)dailyTimeUsed;
             if (dailyTimeUsed.HasValue)
             {
-                long dailyTimeUsedMillis = (long)dailyTimeUsed.Value.TotalMilliseconds;
+                double dailyTimeUsedMillis = dailyTimeUsedInternal.TotalMilliseconds;
                 popupIntent.PutExtra("dailyTimeUsed", dailyTimeUsedMillis);
             }
             if (dailyTimeLimit.HasValue)
             {
-                long dailyTimeLimitMillis = (long)dailyTimeLimit.Value.TotalMilliseconds;
+                double dailyTimeLimitMillis = dailyTimeLimitInternal.TotalMilliseconds;
                 popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
             }
             popupIntent.PutExtra("streak", streak ?? 0);
