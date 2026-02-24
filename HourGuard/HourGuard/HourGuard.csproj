@@ -72,6 +72,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="SettingsPage.xaml.cs">
+	    <DependentUpon>SettingsPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="SettingsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="PermissionsSetUp.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

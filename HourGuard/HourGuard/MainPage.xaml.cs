@@ -53,7 +53,7 @@ namespace HourGuard
         // Adds a new row to the UI list
         public void AddTargetedApp(string appName, string packageName, bool startEnabled = true)
         {
-            // Create a row with two columns: label + switch
+            // Create a row with three columns: icon, label, & switch
             Grid newTargetLine = new Grid
             {
                 ColumnDefinitions =
