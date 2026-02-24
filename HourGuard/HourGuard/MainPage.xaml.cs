@@ -31,8 +31,11 @@ namespace HourGuard
             };
         }
 
-        private void GetTargetedApps()
+        // Refreshes the list of targeted apps in the ui
+        public void GetTargetedApps()
         {
+            ClearCurrentAppList();
+
             // Retrieve all stored entries
             foreach (AppSettings entry in db.GetAllSettingsAsync().Result)
             {
@@ -50,6 +53,15 @@ namespace HourGuard
             }
         }
 
+        // Removes all apps in the currently targeted list, does not remove add more button
+        private void ClearCurrentAppList()
+        {
+            while(TargetAppsList.Children.Count > 1)
+            {
+                TargetAppsList.Children.RemoveAt(0);
+            }
+        }
+
         // Adds a new row to the UI list
         public void AddTargetedApp(string appName, string packageName, bool startEnabled = true)
         {
@@ -60,7 +72,7 @@ namespace HourGuard
                 {
                     new ColumnDefinition { Width = GridLength.Auto }, // App icon
                     new ColumnDefinition { Width = GridLength.Star }, // App name
-                    new ColumnDefinition { Width = GridLength.Auto }  // Switch
+                    new ColumnDefinition { Width = GridLength.Auto }  // Settings button
                 },
                 Padding = 10,
                 Margin = 5
@@ -86,38 +98,32 @@ namespace HourGuard
             };
 
             // Switch that enables/disables monitoring for this app
-            Switch newTargetSwitch = new Switch
+            Button newTargetSettings = new Button
             {
-                IsToggled = startEnabled,
                 HorizontalOptions = LayoutOptions.End,
                 VerticalOptions = LayoutOptions.Center,
+                Text = "Settings",
 
-                // Store package name inside ClassId so we know which app was toggled
+                // Stores package name so that when clicked we can know what app settings to open.
                 ClassId = packageName
             };
 
-            // Save changes when toggled
-            newTargetSwitch.Toggled += OnTargetToggled;
+            // On click open settings page
+            newTargetSettings.Clicked += (s, e) =>
+            {
+                Button settingsButton = (Button)s;
+                Navigation.PushAsync(new SettingsPage(settingsButton.ClassId, this));
+            };
 
             // Add UI elements to the row
             newTargetLine.Add(newTargetIcon, 0, 0);
             newTargetLine.Add(newTargetLabel, 1, 0);
-            newTargetLine.Add(newTargetSwitch, 2, 0);
+            newTargetLine.Add(newTargetSettings, 2, 0);
 
             // Insert before the "Add App" button row
             TargetAppsList.Children.Insert(
                 TargetAppsList.Children.Count - 1,
                 newTargetLine);
-        }
-
-        private void OnTargetToggled(object sender, ToggledEventArgs e)
-        {
-            // Identify which switch was toggled
-            Switch toggledSwitch = (Switch)sender;
-            string packageName = toggledSwitch.ClassId;
-
-            // Save the new toggle state to database
-            db.SetEnabledAsync(packageName, e.Value).Wait();
         }
     }
 }

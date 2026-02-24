@@ -2,10 +2,10 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="HourGuard.SettingsPage"
-    Title="NewPage1">
+    x:Class="HourGuard.SettingsPage">
     <Grid
-        x:Name="Settingslayout">
+        x:Name="Settingslayout"
+        Padding="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -30,12 +30,14 @@
             Grid.Row="2"
             x:Name="RemoveFromTrackedAppsButton"
             Text="Remove From Tracked Apps"
-            ToolTipProperties.Text="Remove this app from the list of tracked apps and delete all settings."/>
+            ToolTipProperties.Text="Remove this app from the list of tracked apps and delete all settings."
+            Margin="10"/>
         
         <Button
             Grid.Row="3"
             x:Name="SaveSettingsButton"
             Text="Save Settings"
-            ToolTipProperties.Text="Save any changes made to settings"/>
+            ToolTipProperties.Text="Save any changes made to settings"
+            Margin="10"/>
     </Grid>
 </ContentPage>

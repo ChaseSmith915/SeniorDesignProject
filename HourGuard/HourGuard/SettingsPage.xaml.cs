@@ -9,6 +9,8 @@ namespace HourGuard
         // database file used to store (among other things) the settings for this app
         private HourGuardDatabase db = App.Database;
 
+        private MainPage mainPage;
+
         private string packageName;
 
         private bool enabled;
@@ -21,8 +23,10 @@ namespace HourGuard
         private Switch enabledSwitch;
         private Entry dailyTimeLimitEntry;
 
-        public SettingsPage(string packageName)
+        public SettingsPage(string packageName, MainPage mainPage)
         {
+            this.mainPage = mainPage;
+
             this.appInfo = Android.App.Application.Context.PackageManager.GetApplicationInfo(packageName, PackageInfoFlags.MatchAll);
             this.appName = appInfo.LoadLabel(Android.App.Application.Context.PackageManager)?.ToString();
 
@@ -150,7 +154,8 @@ namespace HourGuard
             {
                 Keyboard = Microsoft.Maui.Keyboard.Numeric,
                 HorizontalOptions = LayoutOptions.End,
-                VerticalOptions = LayoutOptions.Center
+                VerticalOptions = LayoutOptions.Center,
+                Text = this.dailyLimit.TotalMinutes.ToString()
             };
 
             dailyLimitOption.Add(settingName);
@@ -162,6 +167,7 @@ namespace HourGuard
         private void RemoveFromTrackedApps()
         {
             db.DeleteSetting(packageName);
+            this.mainPage.GetTargetedApps();
 
             Navigation.PopAsync();
         }
