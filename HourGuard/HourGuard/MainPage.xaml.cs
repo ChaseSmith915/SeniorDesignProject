@@ -1,6 +1,8 @@
 ﻿#if ANDROID
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
+using Android.Graphics.Drawables;
 using HourGuard.Database;
 #endif
 
@@ -56,10 +58,22 @@ namespace HourGuard
             {
                 ColumnDefinitions =
                 {
+                    new ColumnDefinition { Width = GridLength.Auto }, // App icon
                     new ColumnDefinition { Width = GridLength.Star }, // App name
                     new ColumnDefinition { Width = GridLength.Auto }  // Switch
                 },
-                Padding = new Thickness(0, 5)
+                Padding = 10,
+                Margin = 5
+            };
+
+            var appInfo = Android.App.Application.Context.PackageManager.GetApplicationInfo(packageName, PackageInfoFlags.MatchAll);
+
+            Image newTargetIcon = new Image
+            {
+                Source = GetIconFromAppInfo.GetAppIcon(appInfo),
+                HeightRequest = 40,
+                WidthRequest = 40,
+                VerticalOptions = LayoutOptions.Center
             };
 
             // Label showing the app name
@@ -67,7 +81,8 @@ namespace HourGuard
             {
                 FontSize = 16,
                 Text = $"{appName}:",
-                VerticalTextAlignment = TextAlignment.Center
+                VerticalTextAlignment = TextAlignment.Center,
+                Padding = 10
             };
 
             // Switch that enables/disables monitoring for this app
@@ -85,8 +100,9 @@ namespace HourGuard
             newTargetSwitch.Toggled += OnTargetToggled;
 
             // Add UI elements to the row
-            newTargetLine.Add(newTargetLabel, 0, 0);
-            newTargetLine.Add(newTargetSwitch, 1, 0);
+            newTargetLine.Add(newTargetIcon, 0, 0);
+            newTargetLine.Add(newTargetLabel, 1, 0);
+            newTargetLine.Add(newTargetSwitch, 2, 0);
 
             // Insert before the "Add App" button row
             TargetAppsList.Children.Insert(
