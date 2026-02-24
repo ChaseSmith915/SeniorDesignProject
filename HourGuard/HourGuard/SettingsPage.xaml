@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="HourGuard.SettingsPage">
+    <Grid
+        x:Name="Settingslayout"
+        Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <HorizontalStackLayout
+            Grid.Row="0"
+            Padding="30"
+            x:Name="HeaderBar">
+        </HorizontalStackLayout>
+
+        <ScrollView
+            Grid.Row="1">
+            <VerticalStackLayout
+                x:Name="SettingOptions">
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button
+            Grid.Row="2"
+            x:Name="RemoveFromTrackedAppsButton"
+            ToolTipProperties.Text="Remove this app from the list of tracked apps and delete all settings."
+            Margin="10"/>
+        
+        <Button
+            Grid.Row="3"
+            x:Name="SaveSettingsButton"
+            Text="Save Settings"
+            ToolTipProperties.Text="Save any changes made to settings"
+            Margin="10"/>
+    </Grid>
+</ContentPage>

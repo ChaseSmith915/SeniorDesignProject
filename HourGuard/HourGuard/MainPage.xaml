@@ -27,9 +27,11 @@
                 VerticalTextAlignment="Center"/>
         </HorizontalStackLayout>
 
-        <ScrollView Grid.Row="1">
+        <ScrollView
+            Grid.Row="1">
             <VerticalStackLayout
-                x:Name="TargetAppsList">
+                x:Name="TargetAppsList"
+                Padding="10">
                 <Button
                     x:Name="AddAppButton"
                     Text="Target a New App +"/>

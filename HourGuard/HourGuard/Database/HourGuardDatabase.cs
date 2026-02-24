@@ -67,6 +67,11 @@ namespace HourGuard.Database
                 packageName) > 0;
         }
 
+        public Task DeleteSetting(string packageName) =>
+            db.Table<AppSettings>()
+              .Where(x => x.PackageName == packageName)
+              .DeleteAsync();
+
         // ─────────────────────────────
         // App usage state (runtime)
         // ─────────────────────────────

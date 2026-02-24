@@ -16,12 +16,13 @@ namespace HourGuard.Platforms.Android
     [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
     public class UsageTrackingService : Service
     {
-        private HourGuardDatabase db = App.Database;
+        private readonly HourGuardDatabase db = App.Database;
 
-        private Dictionary<string, HourGuardTimer> appTimers = new Dictionary<string, HourGuardTimer>();
+        private readonly Dictionary<string, HourGuardTimer> appTimers = new Dictionary<string, HourGuardTimer>();
 
         private Timer timer;
         private string lastForegroundApp = string.Empty;
+        private long lastTimeWithUsage = Java.Lang.JavaSystem.CurrentTimeMillis();
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const int NOTIFICATION_ID = 1001;
@@ -93,9 +94,8 @@ namespace HourGuard.Platforms.Android
                 string packageName = appSetting.PackageName;
 
                 // If there is a snapshot in the database for this app
-                if (timerSnapshotsDict.ContainsKey(appSetting.PackageName))
+                if (timerSnapshotsDict.TryGetValue(appSetting.PackageName, out TimerStatusSnapshots? timerSnapshot))
                 {
-                    TimerStatusSnapshots timerSnapshot = timerSnapshotsDict[appSetting.PackageName];
                     if (timerSnapshot.Timestamp.Date == DateTime.Today)
                     {
                         if (appSetting != null && appSetting.Enabled)
@@ -134,78 +134,81 @@ namespace HourGuard.Platforms.Android
                 var usageStatsManager = (UsageStatsManager)GetSystemService(Context.UsageStatsService);
                 if (usageStatsManager == null) return;
 
-                long time = Java.Lang.JavaSystem.CurrentTimeMillis();
+                long currentTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+                long tenMSAgo = currentTime - (10 * 1000);
 
                 // Query for events in the last 10 seconds
-                var stats = usageStatsManager.QueryUsageStats(UsageStatsInterval.Daily, time - (10 * 1000), time);
+                var stats = usageStatsManager.QueryUsageStats(UsageStatsInterval.Daily, tenMSAgo, currentTime);
 
-                // FIX: Changed stats.Count > 0 to stats.Any() to resolve the "method group" error
+                // If stats were found update the last time stats were successfully found, else get ussage from when the last tiem they were found was
                 if (stats != null && stats.Any())
                 {
-                    Log.Debug(TAG, $"Stats found: {stats.Count} entries."); // NEW LOG: Count stats
+                    lastTimeWithUsage = tenMSAgo;
+                }
+                else
+                {
+                    stats = usageStatsManager.QueryUsageStats(UsageStatsInterval.Daily, lastTimeWithUsage, currentTime);
+                }
 
-                    // Sort by last time used to find the most recent
-                    var sortedStats = stats.OrderByDescending(s => s.LastTimeUsed);
-                    string currentForegroundApp = sortedStats.First()?.PackageName;
+                Log.Debug(TAG, $"Stats found: {stats.Count} entries."); // NEW LOG: Count stats
 
-                    // If there is no forground app or hourguard is in the foreground then don't tick
-                    if (string.IsNullOrEmpty(currentForegroundApp) || currentForegroundApp == "com.SeniorDesign.HourGuard")
+                // Sort by last time used to find the most recent
+                var sortedStats = stats.OrderByDescending(s => s.LastTimeUsed);
+                string currentForegroundApp = sortedStats.First()?.PackageName;
+
+                // If there is no forground app or hourguard is in the foreground then don't tick
+                if (string.IsNullOrEmpty(currentForegroundApp) || currentForegroundApp == "com.SeniorDesign.HourGuard")
+                {
+                    return;
+                }
+
+                Log.Debug(TAG, $"FOREGROUND APP DETECTED: {currentForegroundApp}"); // NEW LOG: Log the detected app
+
+                // Only proceed if the app has an entry in app settings and is enabled
+                if (db.IsEnabledAsync(currentForegroundApp).Result)
+                {
+                    Log.Debug(TAG, $"Targeted app recognized: {currentForegroundApp}");
+                    // Show popup if a *new* app has come to the foreground, otherwise incriment timer
+                    if (currentForegroundApp != lastForegroundApp)
                     {
-                        return;
-                    }
+                        Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
+                        // App was opened! Show the popup.
+                        ShowPopup(currentForegroundApp, appTimers[currentForegroundApp].GetDailyTimeUsed(), appTimers[currentForegroundApp].GetDailyTimeLimit());
 
-                    Log.Debug(TAG, $"FOREGROUND APP DETECTED: {currentForegroundApp}"); // NEW LOG: Log the detected app
-
-                    // Only proceed if the app has an entry in app settings and is enabled
-                    if (db.IsEnabledAsync(currentForegroundApp).Result)
-                    {
-                        Log.Debug(TAG, $"Targeted app recognized: {currentForegroundApp}");
-                        // Show popup if a *new* app has come to the foreground, otherwise incriment timer
-                        if (currentForegroundApp != lastForegroundApp)
-                        {
-                            Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
-                            // App was opened! Show the popup.
-                            ShowPopup(currentForegroundApp, appTimers[currentForegroundApp].GetDailyTimeUsed(), appTimers[currentForegroundApp].GetDailyTimeLimit());
-
-                            // Update the last known app
-                            lastForegroundApp = currentForegroundApp;
-                        }
-                        else
-                        {
-                            (int dailyTimerStatus, int sessionTimerStatus) timerStatuses = appTimers[currentForegroundApp].TickTimers(TimeSpan.FromSeconds(TICK_INTERVAL_SEC));
-                            saveUsageSnapshot();
-
-                            TimeSpan dailyTimeLimit = appTimers[currentForegroundApp].GetDailyTimeLimit();
-                            TimeSpan dailyTimeUsed = appTimers[currentForegroundApp].GetDailyTimeUsed();
-
-                            Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}. Daily time: {dailyTimeUsed.TotalMinutes}/{dailyTimeLimit.TotalMinutes} minutes, Daily Status: {timerStatuses.dailyTimerStatus}, Session Status: {timerStatuses.sessionTimerStatus}"); // NEW LOG: Timer status
-
-                            if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
-                            {
-                                Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
-                                ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
-                            }
-                            else if (timerStatuses.sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
-                            {
-                                Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
-                                ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
-                            }
-                            else if (timerStatuses.dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
-                            {
-                                Log.Debug(TAG, $"Daily time limit warning for {currentForegroundApp}.");
-                                ShowWarningPopup(currentForegroundApp);
-                            }
-                        }
+                        // Update the last known app
+                        lastForegroundApp = currentForegroundApp;
                     }
                     else
                     {
-                        // Update the last known app
-                        lastForegroundApp = currentForegroundApp;
+                        (int dailyTimerStatus, int sessionTimerStatus) = appTimers[currentForegroundApp].TickTimers(TimeSpan.FromSeconds(TICK_INTERVAL_SEC));
+                        SaveUsageSnapshot();
+
+                        TimeSpan dailyTimeLimit = appTimers[currentForegroundApp].GetDailyTimeLimit();
+                        TimeSpan dailyTimeUsed = appTimers[currentForegroundApp].GetDailyTimeUsed();
+
+                        Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}. Daily time: {dailyTimeUsed.TotalMinutes}/{dailyTimeLimit.TotalMinutes} minutes, Daily Status: {dailyTimerStatus}, Session Status: {sessionTimerStatus}"); // NEW LOG: Timer status
+
+                        if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                        {
+                            Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
+                        }
+                        else if (sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                        {
+                            Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
+                        }
+                        else if (dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
+                        {
+                            Log.Debug(TAG, $"Daily time limit warning for {currentForegroundApp}.");
+                            ShowWarningPopup(currentForegroundApp);
+                        }
                     }
                 }
                 else
                 {
-                    Log.Debug(TAG, "No usage stats found in the last 10 seconds."); // NEW LOG: Handle empty stats
+                    // Update the last known app
+                    lastForegroundApp = currentForegroundApp;
                 }
             }
             catch (Exception ex)
@@ -265,7 +268,7 @@ namespace HourGuard.Platforms.Android
             notificationManager.CreateNotificationChannel(channel);
         }
         
-        private void saveUsageSnapshot()
+        private void SaveUsageSnapshot()
         {
             foreach (var timer in appTimers)
             {
