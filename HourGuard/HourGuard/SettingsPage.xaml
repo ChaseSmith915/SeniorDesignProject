@@ -29,7 +29,6 @@
         <Button
             Grid.Row="2"
             x:Name="RemoveFromTrackedAppsButton"
-            Text="Remove From Tracked Apps"
             ToolTipProperties.Text="Remove this app from the list of tracked apps and delete all settings."
             Margin="10"/>
         

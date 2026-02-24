@@ -36,16 +36,6 @@ namespace HourGuard
             PopulateSettingsFromDB();
 
             InitializeUI();
-
-            RemoveFromTrackedAppsButton.Clicked += (s, e) =>
-            {
-                RemoveFromTrackedApps();
-            };
-
-            SaveSettingsButton.Clicked += (s, e) =>
-            {
-                SaveSettings();
-            };
         }
 
         private void PopulateSettingsFromDB()
@@ -61,6 +51,8 @@ namespace HourGuard
             InitializeHeader();
 
             InitializeSettingOptions();
+
+            InitializeButtons();
         }
 
         private void InitializeHeader()
@@ -108,7 +100,7 @@ namespace HourGuard
             Label settingName = new Label
             {
                 FontSize = 16,
-                Text = $"Togle management of {appName}:",
+                Text = $"Targeting on/off:",
                 VerticalTextAlignment = TextAlignment.Center,
                 Padding = 10
             };
@@ -144,7 +136,7 @@ namespace HourGuard
             Label settingName = new Label
             {
                 FontSize = 16,
-                Text = $"Enter a limit in minutes:",
+                Text = $"Enter a daily limit in minutes:",
                 VerticalTextAlignment = TextAlignment.Center,
                 Padding = 10
             };
@@ -162,6 +154,21 @@ namespace HourGuard
             dailyLimitOption.Add(this.dailyTimeLimitEntry);
 
             SettingOptions.Children.Add(dailyLimitOption);
+        }
+
+        private void InitializeButtons()
+        {
+            RemoveFromTrackedAppsButton.Clicked += (s, e) =>
+            {
+                RemoveFromTrackedApps();
+            };
+
+            SaveSettingsButton.Clicked += (s, e) =>
+            {
+                SaveSettings();
+            };
+
+            RemoveFromTrackedAppsButton.Text = $"Delete HourGuard data for {appName}";
         }
 
         private void RemoveFromTrackedApps()
