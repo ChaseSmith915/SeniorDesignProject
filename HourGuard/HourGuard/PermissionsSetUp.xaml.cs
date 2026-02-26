@@ -120,7 +120,7 @@ namespace HourGuard
             return allGranted;
         }
 
-        private string selectedDifficulty; // default
+        private string selectedDifficulty;
         private void OnDifficultyChanged(object sender, CheckedChangedEventArgs e)
         {
             if (sender is RadioButton radioButton && radioButton.IsChecked)
