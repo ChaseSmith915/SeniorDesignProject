@@ -47,6 +47,29 @@
                 BackgroundColor="#F44336"
                 TextColor="White"
                 SemanticProperties.Hint="Stops the Foreground Service." />
+            <!-- Question Difficulty Selector -->
+            <Label
+                Text="Question Difficulty"
+                FontSize="18" 
+                FontAttributes="Bold"
+                Margin="0,20,0,0" />
+            <VerticalStackLayout Spacing="5">
+                <RadioButton
+                    Content="Easy"
+                    GroupName="DifficultyGroup"
+                    Value="easy"
+                    CheckedChanged="OnDifficultyChanged" />
+                <RadioButton
+                    Content="Medium"
+                    GroupName="DifficultyGroup"
+                    Value="medium"
+                    CheckedChanged="OnDifficultyChanged" />
+                <RadioButton
+                    Content="Hard"
+                    GroupName="DifficultyGroup"
+                    Value="hard"
+                    CheckedChanged="OnDifficultyChanged" />
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

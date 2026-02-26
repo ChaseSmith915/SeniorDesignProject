@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Maui.Storage;
 
 namespace HourGuard
 {
@@ -13,6 +14,20 @@ namespace HourGuard
         public PermissionsSetUp()
         {
             InitializeComponent();
+            if (!Preferences.ContainsKey("SelectedDifficulty"))
+            {
+                Preferences.Set("SelectedDifficulty", "easy");
+            }
+
+            // Set the corresponding RadioButton as checked
+            foreach (var child in AppStack.Children.OfType<VerticalStackLayout>().Last().Children)
+            {
+                string savedDifficulty = Preferences.Get("SelectedDifficulty", null);
+                if (child is RadioButton rb && rb.Value.ToString() == savedDifficulty)
+                {
+                    rb.IsChecked = true;
+                }
+            }
         }
 
         private async void OnCheckPermissionsClicked(object sender, EventArgs e)
@@ -103,6 +118,17 @@ namespace HourGuard
 
             await Task.Delay(100);
             return allGranted;
+        }
+
+        private string selectedDifficulty; // default
+        private void OnDifficultyChanged(object sender, CheckedChangedEventArgs e)
+        {
+            if (sender is RadioButton radioButton && radioButton.IsChecked)
+            {
+                selectedDifficulty = radioButton.Value.ToString();
+                Preferences.Set("SelectedDifficulty", selectedDifficulty);
+                Log.Debug("HourGuard", $"Difficulty set to: {selectedDifficulty}");
+            }
         }
     }
 }

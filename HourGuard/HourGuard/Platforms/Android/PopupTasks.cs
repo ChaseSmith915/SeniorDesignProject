@@ -9,6 +9,7 @@ namespace HourGuard
     {
         public string question { get; set; }
         public string correctAnswer { get; set; }
+        public string difficulty { get; set; }
     }
 
     public static class QuestionBank
@@ -26,7 +27,6 @@ namespace HourGuard
                 return _questions;
             }
         }
-
         private static List<Question> LoadQuestions()
         {
             using var stream = FileSystem.OpenAppPackageFileAsync("PopupTasks.json").Result;
