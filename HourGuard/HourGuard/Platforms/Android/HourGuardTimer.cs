@@ -15,11 +15,14 @@ namespace HourGuard.Platforms.Android
         public const int TIMER_WARNING = 1;
         public const int TIMER_EXCEEDED = 2;
 
-        // Durration before time being up that warning status is returned
+        // Duration before time being up that warning status is returned
         public static TimeSpan WARN_DURATION = TimeSpan.FromMinutes(5);
 
         private TimeSpan dailyTimeLimit;
         private TimeSpan dailyTimeUsed;
+
+        // Duration inbetween warnings if you have gone over your daily limit
+        private TimeSpan dailyTimeExpiredInterval = TimeSpan.Zero;
 
         private Boolean dailyWarningIssued = false;
 
@@ -117,9 +120,16 @@ namespace HourGuard.Platforms.Android
             {
                 this.dailyTimeUsed += timeElapsed;
 
+                // If it has been 15 minutes since the last notification that the daily limit has been exceeded, notify again
                 if (dailyTimeLimit - dailyTimeUsed <= TimeSpan.Zero)
                 {
-                    dailyStatus = TIMER_EXCEEDED;
+                    this.dailyTimeExpiredInterval -= timeElapsed;
+
+                    if (this.dailyTimeExpiredInterval <= TimeSpan.Zero)
+                    {
+                        this.dailyTimeExpiredInterval = TimeSpan.FromMinutes(15);
+                        dailyStatus = TIMER_EXCEEDED;
+                    }
                 }
                 else if (dailyTimeLimit - dailyTimeUsed <= WARN_DURATION && !dailyWarningIssued)
                 {
