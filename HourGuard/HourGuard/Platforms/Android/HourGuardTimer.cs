@@ -14,6 +14,7 @@ namespace HourGuard.Platforms.Android
         public const int TIMER_RUNNING = 0;
         public const int TIMER_WARNING = 1;
         public const int TIMER_EXCEEDED = 2;
+        public const int TIMER_NOT_RUNNING = 3;
 
         // Duration before time being up that warning status is returned
         public static TimeSpan WARN_DURATION = TimeSpan.FromMinutes(5);
@@ -84,10 +85,21 @@ namespace HourGuard.Platforms.Android
             return sessionTimeLimit;
         }
 
-        public void startSessionTimer(TimeSpan sessionDuration)
+        public DateTime GetSessionStartTime()
+        {
+            return this.sessionStartTime;
+        }
+
+        public void StartSessionTimer(TimeSpan sessionDuration)
         {
             this.sessionStartTime = DateTime.UtcNow;
             this.sessionTimeLimit = sessionDuration;
+        }
+
+        public void StopSessionTimer()
+        {
+            this.sessionStartTime = DateTime.MinValue;
+            this.sessionTimeLimit = TimeSpan.Zero;
         }
 
         /** Tick the timer by the specified elapsed time.
@@ -97,6 +109,7 @@ namespace HourGuard.Platforms.Android
          *         - 0: Timer is still running without issue
          *         - 1: Timer is about to reach its limit (5 minutes)
          *         - 2: Timer has reached its limit
+         *         - 3: Timer is not running
          */
         public (int dailyTimerStatus, int sessionTimerStatus) TickTimers(TimeSpan timeElapsed)
         {
@@ -107,9 +120,10 @@ namespace HourGuard.Platforms.Android
          * 
          * @param timeElapsed The time elapsed since the last tick.
          * @return A tuple containing the status of the daily timer and session timer:
-         *         - 0: Timer is still running without issue or not active
+         *         - 0: Timer is still running without issue
          *         - 1: Timer is about to reach its limit (5 minutes)
          *         - 2: Timer has reached its limit
+         *         - 3: Timer is not running
          */
         private int GetDailyTimerStatus(TimeSpan timeElapsed)
         {
@@ -137,8 +151,12 @@ namespace HourGuard.Platforms.Android
                     dailyWarningIssued = true;
                 }
             }
+            else
+            {
+                dailyStatus = TIMER_NOT_RUNNING;
+            }
 
-            return dailyStatus;
+                return dailyStatus;
         }
 
         /** Check the status of the session timer after ticking it by the specified elapsed time.
@@ -146,6 +164,7 @@ namespace HourGuard.Platforms.Android
          * @return A tuple containing the status of the daily timer and session timer:
          *         - 0: Timer is still running without issue or not running at all
          *         - 2: Timer has reached its limit
+         *         - 3: Timer is not running
          */
         private int GetSessionTimerStatus()
         {
@@ -154,10 +173,14 @@ namespace HourGuard.Platforms.Android
             // If there is no session time limit, never return exceeded status
             if (sessionTimeLimit > TimeSpan.Zero)
             {
-                if (DateTime.UtcNow - sessionStartTime <= sessionTimeLimit)
+                if (DateTime.UtcNow - sessionStartTime >= sessionTimeLimit)
                 {
                     sessionStatus = TIMER_EXCEEDED;
                 }
+            }
+            else
+            {
+                sessionStatus = TIMER_NOT_RUNNING;
             }
 
             return sessionStatus;

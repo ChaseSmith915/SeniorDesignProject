@@ -59,12 +59,27 @@ namespace HourGuard.Database
                 packageName);
         }
 
+        public Task SetSessionTimerAsync(string packageName, TimeSpan sessionTimer)
+        {
+            return db.ExecuteAsync(
+                "UPDATE AppSettings SET SessionLimitMs = ? WHERE PackageName = ?",
+                sessionTimer.TotalMilliseconds,
+                packageName);
+        }
+
         // Checks if a specific app has settings and is enabled
         public async Task<bool> IsEnabledAsync(string packageName)
         {
             return await db.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM AppSettings WHERE PackageName = ? AND Enabled = 1",
                 packageName) > 0;
+        }
+
+        public Task<TimeSpan> GetSessionTimer(string packageName)
+        {
+            return db.ExecuteScalarAsync<double>(
+                "SELECT SessionLimitMs FROM AppSettings WHERE PackageName = ?",
+                packageName).ContinueWith(t => TimeSpan.FromMilliseconds(t.Result));
         }
 
         public Task DeleteSetting(string packageName) =>

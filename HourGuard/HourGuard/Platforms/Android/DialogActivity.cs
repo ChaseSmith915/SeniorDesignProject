@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Content.Res;
 using Android.OS;
 using Android.Widget;
+using HourGuard.Database;
 using Javax.Security.Auth;
 using Kotlin.IO.Encoding;
 using Microsoft.Maui.Platform;
@@ -15,6 +16,10 @@ namespace HourGuard
     [Activity(Label = "Confirm", Theme = "@style/DialogTheme")]
     public class DialogActivity : Activity
     {
+        private readonly HourGuardDatabase hourGuardDatabase = App.Database;
+
+        int sessionTimer = 0;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -23,10 +28,13 @@ namespace HourGuard
 
             // grabs arguments
             string appPackageName = Intent.GetStringExtra("appPackageName");
+
             double dailyTimeUsedMillis = Intent.GetDoubleExtra("dailyTimeUsed", 0);
             TimeSpan dailyTimeUsed = TimeSpan.FromMilliseconds(dailyTimeUsedMillis);
+
             double dailyTimeLimitMillis = Intent.GetDoubleExtra("dailyTimeLimit", 0);
             TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
+
             int streak = Intent.GetIntExtra("streak", 0);
 
             // TEMP VARIABLES
@@ -65,10 +73,7 @@ namespace HourGuard
 
             // get app name
             string appName = "this app";
-            if (appPackageName == null) {
-                appName = "this app";
-            }
-            else
+            if (appPackageName != null)
             {
                 appName = AndroidAppUtils.GetAppNameFromPackage(appPackageName);
             }
@@ -103,7 +108,7 @@ namespace HourGuard
             Android.Content.Res.ColorStateList colorSecondaryDarkText = Android.Content.Res.ColorStateList.ValueOf(new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.SecondaryDarkText)));
 
             // daily limit usage
-            if ( 1 == 1) //dailyTimeLimit > new TimeSpan(0))
+            if (dailyTimeLimit > new TimeSpan(0))
             {
                 dailyLimitInfoText.Text = "Daily time limit usage:";
                 dailyLimitText.Text = $"{dailyTimeUsed} of {dailyTimeLimit}";
@@ -196,9 +201,9 @@ namespace HourGuard
             sessionTimerValueText.Text = "Duration: session timer not set";
             sessionTimerSlider.ProgressChanged += (s, e) =>
             {
-                int sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
-                sessionTimerSlider.Progress = sessionTimer;
-                sessionTimerValueText.Text = sessionTimer == 0 ? "Duration: session timer not set" : $"Duration: {sessionTimer} minutes";
+                this.sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
+                sessionTimerSlider.Progress = this.sessionTimer;
+                sessionTimerValueText.Text = this.sessionTimer == 0 ? "Duration: session timer not set" : $"Duration: {this.sessionTimer} minutes";
             };
 
             // buttons
@@ -211,6 +216,8 @@ namespace HourGuard
                 //    launchIntent.AddFlags(ActivityFlags.NewTask);
                 //    StartActivity(launchIntent);
                 //}
+
+                hourGuardDatabase.SetSessionTimerAsync(appPackageName, TimeSpan.FromMinutes(this.sessionTimer));
 
                 FinishAndRemoveTask();
             };
