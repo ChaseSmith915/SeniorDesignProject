@@ -2,6 +2,7 @@
 using Android.Content;
 using Android.Content.Res;
 using Android.OS;
+using Android.Util;
 using Android.Widget;
 using HourGuard.Database;
 using Javax.Security.Auth;
@@ -169,20 +170,30 @@ namespace HourGuard
 
             // task
             var questions = QuestionBank.Questions;
+            string selectedDifficulty = Preferences.Get("SelectedDifficulty", "easy");
+
             var randomQuestion = new System.Random();
             var question = questions[randomQuestion.Next(questions.Count)];
+            Log.Debug("HourGuard", $"loaded {question.difficulty} difficulty question {question.question}");
+            while ( question.difficulty != selectedDifficulty)
+            {
+                Log.Debug("HourGuard", $"difficulty {question.difficulty} not equal to user selected difficulty {selectedDifficulty}");
+                question = questions[randomQuestion.Next(questions.Count)];
+                Log.Debug("HourGuard", $"loaded {question.difficulty} difficulty question {question.question}");
+            }
             taskQuestionText.Text = question.question;
+
 
             // answer box
             taskAnswerBox.SetFilters(new Android.Text.IInputFilter[]
             {
-                new Android.Text.InputFilterLengthFilter(16),
+                new Android.Text.InputFilterLengthFilter(17),
                 new AllowedCharacterFilter()
             });
             taskAnswerBox.TextChanged += (s, e) =>
             {
-                string answer = taskAnswerBox.Text.Trim();
-                if (answer == question.correctAnswer)
+                string answer = taskAnswerBox.Text.Trim().ToLower();
+                if (answer == question.correctAnswer.ToLower())
                 {
                     yesButton.Enabled = true;
                     yesButton.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(colorPrimary);

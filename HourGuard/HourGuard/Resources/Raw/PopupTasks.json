@@ -1,10 +1,304 @@
 [
   {
-    "question": "What is 1 + 1?",
-    "correctAnswer": "2"
+    "question": "How many ounces are in a pound?",
+    "correctAnswer": "16",
+    "difficulty": "easy"
   },
   {
-    "question": "What color is an orange?",
-    "correctAnswer": "orange"
+    "question": "How many millimeters are in a meter?",
+    "correctAnswer": "1000",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How many days are in a week?",
+    "correctAnswer": "7",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is 5 + 7?",
+    "correctAnswer": "12",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is the opposite of 'up'?",
+    "correctAnswer": "down",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How many legs does a dog have?",
+    "correctAnswer": "4",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is 10 minus 4?",
+    "correctAnswer": "6",
+    "difficulty": "easy"
+  },
+  {
+    "question": "Which month comes after January?",
+    "correctAnswer": "February",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is 2 times 4?",
+    "correctAnswer": "8",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is the capital of France?",
+    "correctAnswer": "Paris",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What do bees make?",
+    "correctAnswer": "honey",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is half of 20?",
+    "correctAnswer": "10",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What color is grass?",
+    "correctAnswer": "green",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How many fingers are on one human hand?",
+    "correctAnswer": "5",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How many zeros are in the number one thousand?",
+    "correctAnswer": "3",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is the frozen form of water?",
+    "correctAnswer": "ice",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How many sides does a triangle have?",
+    "correctAnswer": "3",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is the name of the star that Earth orbits?",
+    "correctAnswer": "Sun",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How many letters are in the English alphabet?",
+    "correctAnswer": "26",
+    "difficulty": "easy"
+  },
+  {
+    "question": "Which animal is known as the 'King of the Jungle'?",
+    "correctAnswer": "lion",
+    "difficulty": "easy"
+  },
+
+  {
+    "question": "What is 12 multiplied by 3?",
+    "correctAnswer": "36",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the largest ocean on Earth?",
+    "correctAnswer": "Pacific",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the square root of 49?",
+    "correctAnswer": "7",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Who painted the Mona Lisa?",
+    "correctAnswer": "Leonardo da Vinci",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is 50 percent of 80?",
+    "correctAnswer": "40",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the chemical symbol for Gold?",
+    "correctAnswer": "Au",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is 100 divided by 4?",
+    "correctAnswer": "25",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Which planet is known as the Red Planet?",
+    "correctAnswer": "Mars",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is (4 + 6) x 2?",
+    "correctAnswer": "20",
+    "difficulty": "medium"
+  },
+  {
+    "question": "How many continents are there?",
+    "correctAnswer": "7",
+    "difficulty": "medium"
+  },
+  {
+    "question": "How many degrees are in a right angle?",
+    "correctAnswer": "90",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the largest country by land area?",
+    "correctAnswer": "Russia",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the next prime number after 5?",
+    "correctAnswer": "7",
+    "difficulty": "medium"
+  },
+  {
+    "question": "In which year did the first moon landing occur?",
+    "correctAnswer": "1969",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the capital of Japan?",
+    "correctAnswer": "Tokyo",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Which organ in the human body pumps blood?",
+    "correctAnswer": "heart",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What is the hardest natural substance on Earth?",
+    "correctAnswer": "diamond",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Who wrote 'Romeo and Juliet'?",
+    "correctAnswer": "William Shakespeare",
+    "difficulty": "medium"
+  },
+  {
+    "question": "How many colors are in a rainbow?",
+    "correctAnswer": "7",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Which element has the chemical symbol 'O'?",
+    "correctAnswer": "oxygen",
+    "difficulty": "medium"
+  },
+
+  {
+    "question": "What is 13 squared (13^2)?",
+    "correctAnswer": "169",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the smallest country in the world?",
+    "correctAnswer": "Vatican City",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the value of Pi to two decimal places?",
+    "correctAnswer": "3.14",
+    "difficulty": "hard"
+  },
+  {
+    "question": "How many sides does a heptagon have?",
+    "correctAnswer": "7",
+    "difficulty": "hard"
+  },
+  {
+    "question": "Solve for x: 3x - 5 = 10",
+    "correctAnswer": "5",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the most abundant gas in Earth's atmosphere?",
+    "correctAnswer": "nitrogen",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the square root of 225?",
+    "correctAnswer": "15",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the capital of Canada?",
+    "correctAnswer": "Ottawa",
+    "difficulty": "hard"
+  },
+  {
+    "question": "An side of an equilateral trinagle has a length of 4. What is the perimeter?",
+    "correctAnswer": "12",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is 25 percent of 80?",
+    "correctAnswer": "20",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is 15 percent of 200?",
+    "correctAnswer": "30",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the third largest country in the world by area?",
+    "correctAnswer": "China",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the only even prime number?",
+    "correctAnswer": "2",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the chemical symbol for Silver?",
+    "correctAnswer": "Ag",
+    "difficulty": "hard"
+  },
+  {
+    "question": "Which country gifted the Statue of Liberty to the US?",
+    "correctAnswer": "France",
+    "difficulty": "hard"
+  },
+  {
+    "question": "Do polar bears live in the north or south pole?",
+    "correctAnswer": "North",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What scientest invented the theory of relativity?",
+    "correctAnswer": "Albert Einstein",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the smallest bone in the human body?",
+    "correctAnswer": "stapes",
+    "difficulty": "hard"
+  },
+  {
+    "question": "Which planet has the most moons?",
+    "correctAnswer": "Saturn",
+    "difficulty": "hard"
+  },
+  {
+    "question": "What is the largest state in the United States?",
+    "correctAnswer": "Alaska",
+    "difficulty": "hard"
   }
 ]
