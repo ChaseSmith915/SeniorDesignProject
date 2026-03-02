@@ -7,6 +7,20 @@ using System.Threading.Tasks;
 
 namespace HourGuard.Database
 {
+    // Stores the user's global streak data (one row, always Id = 1)
+    public class GlobalStreak
+    {
+        [PrimaryKey]
+        public int Id { get; set; } = 1; // Always 1 — there is only ever one global streak row
+
+        // How many consecutive days the user has stayed within all their limits
+        public int CurrentStreak { get; set; } = 0;
+
+        // The last date the user successfully stayed within their limits (stored as a string "yyyy-MM-dd")
+        // Used to detect if a day was missed, which resets the streak back to 0
+        public string? LastCompliantDate { get; set; }
+    }
+
     // This is a database handler for the database used by HourGuard
     internal class HourGuardDatabase
     {
@@ -24,6 +38,7 @@ namespace HourGuard.Database
             // Create tables if they doesn't exist
             db.CreateTableAsync<AppSettings>().Wait();
             db.CreateTableAsync<TimerStatusSnapshots>().Wait();
+            db.CreateTableAsync<GlobalStreak>().Wait();
         }
 
         // ─────────────────────────────
@@ -114,5 +129,64 @@ namespace HourGuard.Database
         // Clears all timer snapshots
         public Task ClearAllUsageStatesAsync() =>
             db.DeleteAllAsync<TimerStatusSnapshots>();
+
+        // ─────────────────────────────
+        // Global streak
+        // ─────────────────────────────
+
+        // Gets the current streak data, or a fresh default if it doesn't exist yet
+        public async Task<GlobalStreak> GetStreakAsync()
+        {
+            var streak = await db.Table<GlobalStreak>()
+                                 .Where(x => x.Id == 1)
+                                 .FirstOrDefaultAsync();
+
+            // If no streak row exists yet, return a default (streak of 0)
+            return streak ?? new GlobalStreak();
+        }
+
+        // Gets just the current streak count.
+        // Lazily checks if the streak is still alive — no background job needed.
+        // If the last compliant date is older than yesterday, the streak is considered broken.
+        public async Task<int> GetCurrentStreakCountAsync()
+        {
+            var streak = await GetStreakAsync();
+            var today = DateTime.Today.ToString("yyyy-MM-dd");
+            var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+
+            // If the last compliant date isn't today or yesterday, the streak is broken
+            if (streak.LastCompliantDate != today && streak.LastCompliantDate != yesterday)
+                return 0;
+
+            return streak.CurrentStreak;
+        }
+
+        // Call this when the user successfully completes a compliant day.
+        // Increments the streak if it's still alive, otherwise starts a new one from 1.
+        public async Task IncrementStreakAsync()
+        {
+            var streak = await GetStreakAsync();
+            var today = DateTime.Today.ToString("yyyy-MM-dd");
+            var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+
+            if (streak.LastCompliantDate == today)
+            {
+                // Already recorded today, do nothing
+                return;
+            }
+            else if (streak.LastCompliantDate == yesterday)
+            {
+                // Continued the streak — increment it
+                streak.CurrentStreak++;
+            }
+            else
+            {
+                // Missed one or more days — start a new streak from 1
+                streak.CurrentStreak = 1;
+            }
+
+            streak.LastCompliantDate = today;
+            await db.InsertOrReplaceAsync(streak);
+        }
     }
 }
