@@ -13,12 +13,10 @@ namespace HourGuard.Database
         [PrimaryKey]
         public int Id { get; set; } = 1; // Always 1 — there is only ever one global streak row
 
-        // How many consecutive days the user has stayed within all their limits
-        public int CurrentStreak { get; set; } = 0;
-
-        // The last date the user successfully stayed within their limits (stored as a string "yyyy-MM-dd")
-        // Used to detect if a day was missed, which resets the streak back to 0
-        public string? LastCompliantDate { get; set; }
+        // The date the current streak started (stored as a string "yyyy-MM-dd")
+        // Streak length is always derived as (today - StreakStartDate).Days
+        // Reset to today when the user breaks their limits
+        public string StreakStartDate { get; set; } = DateTime.Today.ToString("yyyy-MM-dd");
     }
 
     // This is a database handler for the database used by HourGuard
@@ -145,47 +143,21 @@ namespace HourGuard.Database
             return streak ?? new GlobalStreak();
         }
 
-        // Gets just the current streak count.
-        // Lazily checks if the streak is still alive — no background job needed.
-        // If the last compliant date is older than yesterday, the streak is considered broken.
+        // Computes the current streak length from the stored start date.
+        // Streak = number of days elapsed since StreakStartDate (0 = started today).
         public async Task<int> GetCurrentStreakCountAsync()
         {
             var streak = await GetStreakAsync();
-            var today = DateTime.Today.ToString("yyyy-MM-dd");
-            var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
-
-            // If the last compliant date isn't today or yesterday, the streak is broken
-            if (streak.LastCompliantDate != today && streak.LastCompliantDate != yesterday)
-                return 0;
-
-            return streak.CurrentStreak;
+            var startDate = DateTime.Parse(streak.StreakStartDate);
+            return (DateTime.Today - startDate).Days;
         }
 
-        // Call this when the user successfully completes a compliant day.
-        // Increments the streak if it's still alive, otherwise starts a new one from 1.
-        public async Task IncrementStreakAsync()
+        // Call this when the user breaks their limits.
+        // Resets the streak start date to today, bringing the count back to 0.
+        public async Task BreakStreakAsync()
         {
             var streak = await GetStreakAsync();
-            var today = DateTime.Today.ToString("yyyy-MM-dd");
-            var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
-
-            if (streak.LastCompliantDate == today)
-            {
-                // Already recorded today, do nothing
-                return;
-            }
-            else if (streak.LastCompliantDate == yesterday)
-            {
-                // Continued the streak — increment it
-                streak.CurrentStreak++;
-            }
-            else
-            {
-                // Missed one or more days — start a new streak from 1
-                streak.CurrentStreak = 1;
-            }
-
-            streak.LastCompliantDate = today;
+            streak.StreakStartDate = DateTime.Today.ToString("yyyy-MM-dd");
             await db.InsertOrReplaceAsync(streak);
         }
     }
