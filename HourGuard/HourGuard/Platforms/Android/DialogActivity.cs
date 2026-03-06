@@ -21,7 +21,7 @@ namespace HourGuard
 
         int sessionTimer = 0;
 
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
@@ -36,10 +36,8 @@ namespace HourGuard
             double dailyTimeLimitMillis = Intent.GetDoubleExtra("dailyTimeLimit", 0);
             TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
 
-            int streak = Intent.GetIntExtra("streak", 0);
-
-            // TEMP VARIABLES
-            streak = 7;
+            // load streak from database (global streak tracker)
+            int streak = await hourGuardDatabase.GetCurrentStreakCountAsync();
             //dailyTimeUsed = new TimeSpan(1, 1, 0);
             //dailyTimeLimit = new TimeSpan(1, 0, 0);
 
