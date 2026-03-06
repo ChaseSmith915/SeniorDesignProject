@@ -11,18 +11,20 @@ namespace HourGuard
 {
     public partial class PermissionsSetUp : ContentPage
     {
+        private const string SELECTED_DIFFICULTY_KEY = "SelectedDifficulty";
+
         public PermissionsSetUp()
         {
             InitializeComponent();
-            if (!Preferences.ContainsKey("SelectedDifficulty"))
+            if (!Preferences.ContainsKey(SELECTED_DIFFICULTY_KEY))
             {
-                Preferences.Set("SelectedDifficulty", "easy");
+                Preferences.Set(SELECTED_DIFFICULTY_KEY, "easy");
             }
 
             // Set the corresponding RadioButton as checked
             foreach (var child in AppStack.Children.OfType<VerticalStackLayout>().Last().Children)
             {
-                string savedDifficulty = Preferences.Get("SelectedDifficulty", null);
+                string savedDifficulty = Preferences.Get(SELECTED_DIFFICULTY_KEY, null);
                 if (child is RadioButton rb && rb.Value.ToString() == savedDifficulty)
                 {
                     rb.IsChecked = true;
@@ -126,7 +128,7 @@ namespace HourGuard
             if (sender is RadioButton radioButton && radioButton.IsChecked)
             {
                 selectedDifficulty = radioButton.Value.ToString();
-                Preferences.Set("SelectedDifficulty", selectedDifficulty);
+                Preferences.Set(SELECTED_DIFFICULTY_KEY, selectedDifficulty);
                 Log.Debug("HourGuard", $"Difficulty set to: {selectedDifficulty}");
             }
         }

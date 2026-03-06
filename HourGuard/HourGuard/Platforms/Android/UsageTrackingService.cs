@@ -23,10 +23,12 @@ namespace HourGuard.Platforms.Android
         private Timer timer;
         private string lastForegroundApp = string.Empty;
         private long lastTimeWithUsage = Java.Lang.JavaSystem.CurrentTimeMillis();
+        private DateTime lastRefreshDate;
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
-        private const int NOTIFICATION_ID = 1001;
         private const string TAG = "HourGuardService";
+        private const string LAST_REFRESH_DATE_KEY = "LastRefreshDate";
+        private const int NOTIFICATION_ID = 1001;
         private const int TICK_INTERVAL_SEC = 5;
 
         public override IBinder OnBind(Intent intent)
@@ -38,13 +40,16 @@ namespace HourGuard.Platforms.Android
         {
             Log.Debug(TAG, "Usage Tracking Service started.");
 
-            // 0. Initialize appTimers from database settings
+            // Prepare to reset daily timers at midnight by storing the last refresh date
+            InitializeDailyTimerReset();
+
+            // Initialize appTimers from database settings
             InitializeAppTimers();
 
-            // 1. Create Notification Channel (Required for Android 8.0+)
+            // Create Notification Channel (Required for Android 8.0+)
             CreateNotificationChannel();
 
-            // 2. Create the persistent notification
+            // Create the persistent notification
             var notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .SetContentTitle("Time Management Active")
                 .SetContentText("Monitoring app usage...")
@@ -52,7 +57,7 @@ namespace HourGuard.Platforms.Android
                 .SetOngoing(true)
                 .Build();
 
-            // 3. Start the service in the foreground
+            // Start the service in the foreground
             // On API 34 (Target SDK 34), StartForeground MUST include the ForegroundServiceType.
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Q) // Q is API 29, when this overload was introduced
             {
@@ -65,13 +70,13 @@ namespace HourGuard.Platforms.Android
             }
 
 
-            // 4. Start the polling timer
+            // Start the polling timer
             // We check every 3 seconds. Adjust as needed for battery vs. responsiveness.
             timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(TICK_INTERVAL_SEC).TotalMilliseconds);
 
             Log.Debug(TAG, $"Timer started, checking every {TICK_INTERVAL_SEC * 1000}ms."); // NEW LOG
 
-            // 5. Return "Sticky" to ensure the service restarts if killed
+            // Return "Sticky" to ensure the service restarts if killed
             return StartCommandResult.Sticky;
         }
 
@@ -81,6 +86,19 @@ namespace HourGuard.Platforms.Android
             timer?.Dispose();
             timer = null;
             base.OnDestroy();
+        }
+
+        private void InitializeDailyTimerReset()
+        {
+            if (!Preferences.ContainsKey(LAST_REFRESH_DATE_KEY))
+            {
+                Preferences.Set(LAST_REFRESH_DATE_KEY, DateTime.UtcNow.Date.ToString());
+                lastRefreshDate = DateTime.UtcNow.Date;
+            }
+            else
+            {
+                lastRefreshDate = DateTime.Parse(Preferences.Get(LAST_REFRESH_DATE_KEY, DateTime.UtcNow.Date.ToString()));
+            }
         }
 
         private void InitializeAppTimers()
@@ -130,6 +148,8 @@ namespace HourGuard.Platforms.Android
             {
                 // NEW LOG: Confirming timer execution
                 Log.Debug(TAG, "TIMER TICK: Executing CheckForegroundApp.");
+
+                ResetDailyTimersIfNeeded();
 
                 var usageStatsManager = (UsageStatsManager)GetSystemService(Context.UsageStatsService);
                 if (usageStatsManager == null) return;
@@ -240,6 +260,24 @@ namespace HourGuard.Platforms.Android
             catch (Exception ex)
             {
                 Log.Error(TAG, $"Error in CheckForegroundApp: {ex.Message}");
+            }
+        }
+
+        private void ResetDailyTimersIfNeeded()
+        {
+            DateTime today = DateTime.UtcNow.Date;
+            if (today > lastRefreshDate)
+            {
+                Log.Debug(TAG, "New day detected. Resetting daily timers.");
+                foreach (var timer in appTimers.Values)
+                {
+                    timer.ResetDailyTimer();
+                }
+                lastRefreshDate = today;
+                Preferences.Set(LAST_REFRESH_DATE_KEY, lastRefreshDate.ToString());
+                SaveUsageSnapshot();
+
+                // TODO: incriment streaks here too
             }
         }
 
