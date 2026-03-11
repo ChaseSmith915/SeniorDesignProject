@@ -5,6 +5,8 @@ using Android.Graphics;
 using Android.Graphics.Drawables;
 using HourGuard.Database;
 #endif
+using System.Threading.Tasks;
+using Microsoft.Maui.ApplicationModel;
 
 namespace HourGuard
 {
@@ -18,6 +20,9 @@ namespace HourGuard
             InitializeComponent();
             GetTargetedApps();
 
+            // Load and display the user's current global streak
+            _ = LoadAndDisplayStreakAsync();
+
             // Navigate to permissions setup page
             EnablePermissionsButton.Clicked += (s, e) =>
             {
@@ -29,6 +34,29 @@ namespace HourGuard
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
+        }
+
+        // Loads the current streak from the database and updates the UI label.
+        private async Task LoadAndDisplayStreakAsync()
+        {
+            try
+            {
+                int streak = await db.GetCurrentStreakCountAsync();
+                string text = streak == 1 ? "1 Day" : $"{streak} Days";
+
+                // Ensure UI update happens on main thread
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (StreakNumLabel != null)
+                    {
+                        StreakNumLabel.Text = text;
+                    }
+                });
+            }
+            catch
+            {
+                // Ignore errors — leave placeholder if reading streak fails
+            }
         }
 
         // Refreshes the list of targeted apps in the ui

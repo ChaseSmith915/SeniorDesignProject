@@ -217,16 +217,16 @@ namespace HourGuard
 
             // buttons
             yesButton.Text = "Continue";
-            yesButton.Click += (s, e) =>
+            yesButton.Click += async (s, e) =>
             {
-                //if (!appPackageName == null)
-                //{
-                //    var launchIntent = PackageManager.GetLaunchIntentForPackage(appPackageName);
-                //    launchIntent.AddFlags(ActivityFlags.NewTask);
-                //    StartActivity(launchIntent);
-                //}
+                // If the user continues while at their daily limit and they have a streak,
+                // break the global streak in the database.
+                if (streak > 0 && dailyLimitUsedPercent >= 100)
+                {
+                    await hourGuardDatabase.BreakStreakAsync();
+                }
 
-                hourGuardDatabase.SetSessionTimerAsync(appPackageName, TimeSpan.FromMinutes(this.sessionTimer));
+                await hourGuardDatabase.SetSessionTimerAsync(appPackageName, TimeSpan.FromMinutes(this.sessionTimer));
 
                 FinishAndRemoveTask();
             };
