@@ -7,6 +7,18 @@ using System.Threading.Tasks;
 
 namespace HourGuard.Database
 {
+    // Stores the user's global streak data (one row, always Id = 1)
+    public class GlobalStreak
+    {
+        [PrimaryKey]
+        public int Id { get; set; } = 1; // Always 1 — there is only ever one global streak row
+
+        // The date the current streak started (stored as a string "yyyy-MM-dd")
+        // Streak length is always derived as (today - StreakStartDate).Days
+        // Reset to today when the user breaks their limits
+        public string StreakStartDate { get; set; } = DateTime.Today.ToString("yyyy-MM-dd");
+    }
+
     // This is a database handler for the database used by HourGuard
     internal class HourGuardDatabase
     {
@@ -24,6 +36,7 @@ namespace HourGuard.Database
             // Create tables if they doesn't exist
             db.CreateTableAsync<AppSettings>().Wait();
             db.CreateTableAsync<TimerStatusSnapshots>().Wait();
+            db.CreateTableAsync<GlobalStreak>().Wait();
         }
 
         // ─────────────────────────────
@@ -114,5 +127,38 @@ namespace HourGuard.Database
         // Clears all timer snapshots
         public Task ClearAllUsageStatesAsync() =>
             db.DeleteAllAsync<TimerStatusSnapshots>();
+
+        // ─────────────────────────────
+        // Global streak
+        // ─────────────────────────────
+
+        // Gets the current streak data, or a fresh default if it doesn't exist yet
+        public async Task<GlobalStreak> GetStreakAsync()
+        {
+            var streak = await db.Table<GlobalStreak>()
+                                 .Where(x => x.Id == 1)
+                                 .FirstOrDefaultAsync();
+
+            // If no streak row exists yet, return a default (streak of 0)
+            return streak ?? new GlobalStreak();
+        }
+
+        // Computes the current streak length from the stored start date.
+        // Streak = number of days elapsed since StreakStartDate (0 = started today).
+        public async Task<int> GetCurrentStreakCountAsync()
+        {
+            var streak = await GetStreakAsync();
+            var startDate = DateTime.Parse(streak.StreakStartDate);
+            return (DateTime.Today - startDate).Days;
+        }
+
+        // Call this when the user breaks their limits.
+        // Resets the streak start date to today, bringing the count back to 0.
+        public async Task BreakStreakAsync()
+        {
+            var streak = await GetStreakAsync();
+            streak.StreakStartDate = DateTime.Today.ToString("yyyy-MM-dd");
+            await db.InsertOrReplaceAsync(streak);
+        }
     }
 }
