@@ -34,6 +34,19 @@ namespace HourGuard
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
+
+            // DEBUG: Remove before release
+            DebugIncrementStreakButton.Clicked += async (s, e) =>
+            {
+                await db.IncrementStreakAsync();
+                await LoadAndDisplayStreakAsync();
+            };
+
+            DebugBreakStreakButton.Clicked += async (s, e) =>
+            {
+                await db.BreakStreakAsync();
+                await LoadAndDisplayStreakAsync();
+            };
         }
 
         // Loads the current streak from the database and updates the UI label.
@@ -84,7 +97,7 @@ namespace HourGuard
         // Removes all apps in the currently targeted list, does not remove add more button
         private void ClearCurrentAppList()
         {
-            while(TargetAppsList.Children.Count > 1)
+            while (TargetAppsList.Children.Count > 1)
             {
                 TargetAppsList.Children.RemoveAt(0);
             }

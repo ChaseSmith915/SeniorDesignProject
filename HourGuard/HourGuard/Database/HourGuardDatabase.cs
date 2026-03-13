@@ -13,10 +13,10 @@ namespace HourGuard.Database
         [PrimaryKey]
         public int Id { get; set; } = 1; // Always 1 — there is only ever one global streak row
 
-        // The date the current streak started (stored as a string "yyyy-MM-dd")
-        // Streak length is always derived as (today - StreakStartDate).Days
-        // Reset to today when the user breaks their limits
-        public string StreakStartDate { get; set; } = DateTime.Today.ToString("yyyy-MM-dd");
+        // Number of consecutive compliant days.
+        // Incremented at midnight if the user was compliant, reset to 0 if not.
+        // Preserved unchanged if the service was not running.
+        public int CurrentStreak { get; set; } = 0;
     }
 
     // This is a database handler for the database used by HourGuard
@@ -143,21 +143,28 @@ namespace HourGuard.Database
             return streak ?? new GlobalStreak();
         }
 
-        // Computes the current streak length from the stored start date.
-        // Streak = number of days elapsed since StreakStartDate (0 = started today).
+        // Returns the current streak count.
         public async Task<int> GetCurrentStreakCountAsync()
         {
             var streak = await GetStreakAsync();
-            var startDate = DateTime.Parse(streak.StreakStartDate);
-            return (DateTime.Today - startDate).Days;
+            return streak.CurrentStreak;
         }
 
-        // Call this when the user breaks their limits.
-        // Resets the streak start date to today, bringing the count back to 0.
+        // Call this at midnight when the user was compliant all day.
+        // Increments the streak by 1.
+        public async Task IncrementStreakAsync()
+        {
+            var streak = await GetStreakAsync();
+            streak.CurrentStreak++;
+            await db.InsertOrReplaceAsync(streak);
+        }
+
+        // Call this at midnight when the user broke their limits during the day.
+        // Resets the streak back to 0.
         public async Task BreakStreakAsync()
         {
             var streak = await GetStreakAsync();
-            streak.StreakStartDate = DateTime.Today.ToString("yyyy-MM-dd");
+            streak.CurrentStreak = 0;
             await db.InsertOrReplaceAsync(streak);
         }
     }

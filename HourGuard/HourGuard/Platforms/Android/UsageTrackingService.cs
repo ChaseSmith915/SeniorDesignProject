@@ -22,6 +22,7 @@ namespace HourGuard.Platforms.Android
 
         private Timer timer;
         private string lastForegroundApp = string.Empty;
+        private bool wasCompliantToday = true; // Tracks whether the user has exceeded any limit today
         private long lastTimeWithUsage = Java.Lang.JavaSystem.CurrentTimeMillis();
         private DateTime lastRefreshDate;
 
@@ -224,11 +225,13 @@ namespace HourGuard.Platforms.Android
                         if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
+                            wasCompliantToday = false; // User exceeded their daily limit
                             ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
                         }
                         else if (sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
+                            wasCompliantToday = false; // User exceeded their session limit
                             // Stops the session timer so that if the user continues to use the app after the popup it won't contiue to show popups every tick
                             appTimers[currentForegroundApp].StopSessionTimer();
                             ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
@@ -277,7 +280,20 @@ namespace HourGuard.Platforms.Android
                 Preferences.Set(LAST_REFRESH_DATE_KEY, lastRefreshDate.ToString());
                 SaveUsageSnapshot();
 
-                // TODO: incriment streaks here too
+                // Increment streak if the user was compliant yesterday, otherwise break it
+                if (wasCompliantToday)
+                {
+                    Log.Debug(TAG, "User was compliant yesterday. Streak incremented.");
+                    db.IncrementStreakAsync().Wait();
+                }
+                else
+                {
+                    Log.Debug(TAG, "User was not compliant yesterday. Streak broken.");
+                    db.BreakStreakAsync().Wait();
+                }
+
+                // Reset compliance flag for the new day
+                wasCompliantToday = true;
             }
         }
 
@@ -325,7 +341,7 @@ namespace HourGuard.Platforms.Android
             var notificationManager = (NotificationManager)GetSystemService(NotificationService);
             notificationManager.CreateNotificationChannel(channel);
         }
-        
+
         private void SaveUsageSnapshot()
         {
             foreach (var timer in appTimers)
@@ -337,7 +353,7 @@ namespace HourGuard.Platforms.Android
                 {
                     PackageName = packageName,
                     Timestamp = DateTime.UtcNow,
-                    DailyElapsedMs = (long) timerData.GetDailyTimeUsed().TotalMilliseconds
+                    DailyElapsedMs = (long)timerData.GetDailyTimeUsed().TotalMilliseconds
                 };
                 db.SaveUsageStateAsync(snapshot).Wait();
             }
