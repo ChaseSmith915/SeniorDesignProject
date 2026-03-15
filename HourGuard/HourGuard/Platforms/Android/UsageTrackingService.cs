@@ -193,7 +193,13 @@ namespace HourGuard.Platforms.Android
                     {
                         Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
                         // App was opened! Show the popup.
-                        ShowPopup(currentForegroundApp, appTimers[currentForegroundApp].GetDailyTimeUsed(), appTimers[currentForegroundApp].GetDailyTimeLimit());
+                        ShowPopup(
+                            currentForegroundApp,
+                            appTimers[currentForegroundApp].GetDailyTimeUsed(),
+                            appTimers[currentForegroundApp].GetDailyTimeLimit(),
+                            appTimers[currentForegroundApp].GetSessionStartTime(),
+                            appTimers[currentForegroundApp].GetSessionTimeLimit()
+                        );
 
                         // Update the last known app
                         lastForegroundApp = currentForegroundApp;
@@ -224,14 +230,14 @@ namespace HourGuard.Platforms.Android
                         if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
-                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
                         }
                         else if (sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
                             // Stops the session timer so that if the user continues to use the app after the popup it won't contiue to show popups every tick
                             appTimers[currentForegroundApp].StopSessionTimer();
-                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
                         }
                         else if (dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
                         {
@@ -281,7 +287,7 @@ namespace HourGuard.Platforms.Android
             }
         }
 
-        private void ShowPopup(string appPackageName, TimeSpan dailyTimeUsed, TimeSpan dailyTimeLimit, int? streak = null)
+        private void ShowPopup(string appPackageName, TimeSpan dailyTimeUsed, TimeSpan dailyTimeLimit, DateTime sessionStartTime, TimeSpan sessionTimeLimit)
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
@@ -294,7 +300,12 @@ namespace HourGuard.Platforms.Android
             double dailyTimeLimitMillis = dailyTimeLimit.TotalMilliseconds;
             popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
 
-            popupIntent.PutExtra("streak", streak ?? 0);
+            long sessionStartTimeMillis = sessionStartTime.ToUniversalTime().Ticks;
+            popupIntent.PutExtra("sessionStartTime", sessionStartTimeMillis);
+
+            double sessionTimeLimitMillis = sessionTimeLimit.TotalMilliseconds;
+            popupIntent.PutExtra("sessionTimeLimit", sessionTimeLimitMillis);
+
             StartActivity(popupIntent);
         }
 

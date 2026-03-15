@@ -36,6 +36,12 @@ namespace HourGuard
             double dailyTimeLimitMillis = Intent.GetDoubleExtra("dailyTimeLimit", 0);
             TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
 
+            long sessionStartTimeMillis = Intent.GetLongExtra("sessionStartTime", 0);
+            DateTime sessionStartTime = DateTimeOffset.FromUnixTimeMilliseconds(sessionStartTimeMillis).DateTime;
+
+            double sessionTimeLimitMillis = Intent.GetDoubleExtra("sessionTimeLimit", 0);
+            TimeSpan sessionTimeLimit = TimeSpan.FromMilliseconds(sessionTimeLimitMillis);
+
             // load streak from database (global streak tracker)
             int streak = await hourGuardDatabase.GetCurrentStreakCountAsync();
             //dailyTimeUsed = new TimeSpan(1, 1, 0);
@@ -89,13 +95,19 @@ namespace HourGuard
             var dailyLimitText = FindViewById<TextView>(Resource.Id.dailyLimitText);
             var dailyLimitProgressBar = FindViewById<Android.Widget.ProgressBar>(Resource.Id.dailyLimitProgressBar);
             var dividerDailyLimit = FindViewById(Resource.Id.dividerDailyLimit);
+
             var streakText = FindViewById<TextView>(Resource.Id.streakText);
+
             var continueIntoAppText = FindViewById<TextView>(Resource.Id.continueIntoAppText);
+
             var taskQuestionText = FindViewById<TextView>(Resource.Id.taskQuestionText);
             var taskAnswerBox = FindViewById<EditText>(Resource.Id.taskAnswerBox);
+
             var sessionTimerText = FindViewById<TextView>(Resource.Id.sessionTimerText);
+            var sessionTimerProgessBar = FindViewById<Android.Widget.ProgressBar>(Resource.Id.sessionLimitProgressBar);
             var sessionTimerSlider = FindViewById<SeekBar>(Resource.Id.sessionTimerSlider);
             var sessionTimerValueText = FindViewById<TextView>(Resource.Id.sessionTimerLabelText);
+
             var buttonLayout = FindViewById<LinearLayout>(Resource.Id.buttonLayout);
             var yesButton = FindViewById<Android.Widget.Button>(Resource.Id.yesButton);
             var noButton = FindViewById<Android.Widget.Button>(Resource.Id.noButton);
@@ -107,7 +119,7 @@ namespace HourGuard
             Android.Content.Res.ColorStateList colorSecondaryDarkText = Android.Content.Res.ColorStateList.ValueOf(new Android.Graphics.Color(AndroidX.Core.Content.ContextCompat.GetColor(this, Resource.Color.SecondaryDarkText)));
 
             // daily limit usage
-            if (dailyTimeLimit > new TimeSpan(0))
+            if (dailyTimeLimit > TimeSpan.Zero)
             {
                 dailyLimitInfoText.Text = "Daily time limit usage:";
                 dailyLimitText.Text = $"{dailyTimeUsed} of {dailyTimeLimit}";
@@ -206,14 +218,44 @@ namespace HourGuard
             };
 
             // session timer
-            sessionTimerText.Text = "Optionally, set a session timer:";
-            sessionTimerValueText.Text = "Duration: session timer not set";
-            sessionTimerSlider.ProgressChanged += (s, e) =>
+            // If there is a session timer show it's current status
+            if (sessionTimeLimit > TimeSpan.Zero)
             {
-                this.sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
-                sessionTimerSlider.Progress = this.sessionTimer;
-                sessionTimerValueText.Text = this.sessionTimer == 0 ? "Duration: session timer not set" : $"Duration: {this.sessionTimer} minutes";
-            };
+                TimeSpan remainingTime = (sessionStartTime + sessionTimeLimit) - DateTime.UtcNow;
+
+                double remainingMinutes = remainingTime.Minutes;
+                double remainingSeconds = remainingTime.Seconds;
+
+                sessionTimerText.Text = $"Your current session timer has {remainingMinutes} minutes and {remainingSeconds} left";
+
+                int sessionTimerUsedPercent = (int)Math.Truncate(remainingTime / sessionTimeLimit * 100);
+                if (sessionTimerUsedPercent >= 100)
+                {
+                    sessionTimerProgessBar.Progress = 100;
+                    sessionTimerProgessBar.ProgressTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Red);
+                }
+                else
+                {
+                    sessionTimerProgessBar.Progress = sessionTimerUsedPercent;
+                }
+
+                sessionTimerValueText.RemoveFromParent();
+                sessionTimerSlider.RemoveFromParent();
+            }
+            // If there is no session timer, allow the user to set one with the slider
+            else
+            {
+                sessionTimerText.Text = "Optionally, set a session timer:";
+                sessionTimerValueText.Text = "Duration: session timer not set";
+                sessionTimerSlider.ProgressChanged += (s, e) =>
+                {
+                    this.sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
+                    sessionTimerSlider.Progress = this.sessionTimer;
+                    sessionTimerValueText.Text = this.sessionTimer == 0 ? "Duration: session timer not set" : $"Duration: {this.sessionTimer} minutes";
+                };
+
+                sessionTimerProgessBar.RemoveFromParent();
+            }
 
             // buttons
             yesButton.Text = "Continue";
@@ -226,7 +268,11 @@ namespace HourGuard
                     await hourGuardDatabase.BreakStreakAsync();
                 }
 
-                await hourGuardDatabase.SetSessionTimerAsync(appPackageName, TimeSpan.FromMinutes(this.sessionTimer));
+                // If there is no session timer currently set, but the user set one with the slider, save it to the database so it can be enforced in the next activity
+                if (sessionTimeLimit == TimeSpan.Zero && this.sessionTimer > 0)
+                {
+                    await hourGuardDatabase.SetSessionTimerAsync(appPackageName, TimeSpan.FromMinutes(this.sessionTimer));
+                }
 
                 FinishAndRemoveTask();
             };
