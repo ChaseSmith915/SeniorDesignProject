@@ -225,13 +225,11 @@ namespace HourGuard.Platforms.Android
                         if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
-                            wasCompliantToday = false; // User exceeded their daily limit
                             ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
                         }
                         else if (sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
-                            wasCompliantToday = false; // User exceeded their session limit
                             // Stops the session timer so that if the user continues to use the app after the popup it won't contiue to show popups every tick
                             appTimers[currentForegroundApp].StopSessionTimer();
                             ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
