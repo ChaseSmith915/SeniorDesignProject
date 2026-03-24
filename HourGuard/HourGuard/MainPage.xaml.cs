@@ -34,12 +34,19 @@ namespace HourGuard
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
-        }
 
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-            _ = LoadAndDisplayStreakAsync();
+            // DEBUG: Remove before release
+            DebugIncrementStreakButton.Clicked += async (s, e) =>
+            {
+                await db.IncrementStreakAsync();
+                await LoadAndDisplayStreakAsync();
+            };
+
+            DebugBreakStreakButton.Clicked += async (s, e) =>
+            {
+                await db.BreakStreakAsync();
+                await LoadAndDisplayStreakAsync();
+            };
         }
 
         // Loads the current streak from the database and updates the UI label.
@@ -48,7 +55,17 @@ namespace HourGuard
             try
             {
                 int streak = await db.GetCurrentStreakCountAsync();
-                string text = streak == 1 ? "1 Day" : $"{streak} Days";
+                string text = "";
+                if (streak == -1)
+                {
+                    //If -1 is returned, the user broke their streak for that day
+                    //Maybe add a special message here?
+                    text = "0 Days";
+                }
+                else
+                {
+                    text = streak == 1 ? "1 Day" : $"{streak} Days";
+                }
 
                 // Ensure UI update happens on main thread
                 MainThread.BeginInvokeOnMainThread(() =>

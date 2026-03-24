@@ -159,12 +159,11 @@ namespace HourGuard.Database
             await db.InsertOrReplaceAsync(streak);
         }
 
-        // Call this at midnight when the user broke their limits during the day.
         // Resets the streak back to 0.
         public async Task BreakStreakAsync()
         {
             var streak = await GetStreakAsync();
-            streak.CurrentStreak = 0;
+            streak.CurrentStreak = -1;
             await db.InsertOrReplaceAsync(streak);
         }
     }
