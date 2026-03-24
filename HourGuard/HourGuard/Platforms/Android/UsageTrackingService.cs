@@ -10,6 +10,7 @@ using System.Linq; // Required for OrderByDescending and Any()
 using System.Threading;
 using HourGuard.Database;
 using Microsoft;
+using System.Threading.Tasks;
 
 namespace HourGuard.Platforms.Android
 {
@@ -114,7 +115,7 @@ namespace HourGuard.Platforms.Android
                 // If there is a snapshot in the database for this app
                 if (timerSnapshotsDict.TryGetValue(appSetting.PackageName, out TimerStatusSnapshots? timerSnapshot))
                 {
-                    if (timerSnapshot.Timestamp.Date == DateTime.Today)
+                    if (timerSnapshot.Timestamp.Date == DateTime.UtcNow.Date)
                     {
                         if (appSetting != null && appSetting.Enabled)
                         {
@@ -245,15 +246,13 @@ namespace HourGuard.Platforms.Android
                             ShowWarningPopup(currentForegroundApp);
                         }
 
-                        //Start a session timer if there is a limit set and one isn't already running
+                        // Start a session timer if there is a limit set and one isn't already running
                         TimeSpan sessonTimer = db.GetSessionTimer(currentForegroundApp).Result;
-                        if (sessonTimer != TimeSpan.FromMilliseconds(0))
+                        if (sessonTimer != TimeSpan.Zero && sessionTimerStatus == HourGuardTimer.TIMER_NOT_RUNNING)
                         {
-                            if (sessionTimerStatus == HourGuardTimer.TIMER_NOT_RUNNING)
-                            {
-                                Log.Debug(TAG, $"Starting session timer for {currentForegroundApp} for {sessonTimer.TotalMinutes} minutes.");
-                                appTimers[currentForegroundApp].StartSessionTimer(sessonTimer);
-                            }
+                            Log.Debug(TAG, $"Starting session timer for {currentForegroundApp} for {sessonTimer.TotalMinutes} minutes.");
+                            appTimers[currentForegroundApp].StartSessionTimer(sessonTimer);
+                            db.SetSessionTimerAsync(currentForegroundApp, TimeSpan.Zero);
                         }
                     }
                 }
@@ -300,7 +299,7 @@ namespace HourGuard.Platforms.Android
             double dailyTimeLimitMillis = dailyTimeLimit.TotalMilliseconds;
             popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
 
-            long sessionStartTimeMillis = sessionStartTime.ToUniversalTime().Ticks;
+            long sessionStartTimeMillis = sessionStartTime.ToUniversalTime().Millisecond;
             popupIntent.PutExtra("sessionStartTime", sessionStartTimeMillis);
 
             double sessionTimeLimitMillis = sessionTimeLimit.TotalMilliseconds;
