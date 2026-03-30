@@ -37,7 +37,7 @@ namespace HourGuard
             TimeSpan dailyTimeLimit = TimeSpan.FromMilliseconds(dailyTimeLimitMillis);
 
             long sessionStartTimeMillis = Intent.GetLongExtra("sessionStartTime", 0);
-            DateTime sessionStartTime = DateTimeOffset.FromUnixTimeMilliseconds(sessionStartTimeMillis).DateTime;
+            DateTime sessionStartTime = DateTimeOffset.FromUnixTimeMilliseconds(sessionStartTimeMillis).UtcDateTime;
 
             double sessionTimeLimitMillis = Intent.GetDoubleExtra("sessionTimeLimit", 0);
             TimeSpan sessionTimeLimit = TimeSpan.FromMilliseconds(sessionTimeLimitMillis);
@@ -226,21 +226,30 @@ namespace HourGuard
                 double remainingMinutes = remainingTime.Minutes;
                 double remainingSeconds = remainingTime.Seconds;
 
-                sessionTimerText.Text = $"Your current session timer has {remainingMinutes} minutes and {remainingSeconds} left";
-
-                int sessionTimerUsedPercent = (int)Math.Truncate(remainingTime / sessionTimeLimit * 100);
+                int sessionTimerUsedPercent = (int)Math.Truncate((1 - (remainingTime / sessionTimeLimit)) * 100);
                 if (sessionTimerUsedPercent >= 100)
                 {
-                    sessionTimerProgessBar.Progress = 100;
-                    sessionTimerProgessBar.ProgressTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Red);
+                    sessionTimerText.Text = $"Your session timer has expired! If you would like, you may set a new one:";
+
+                    sessionTimerValueText.Text = "Duration: session timer not set";
+                    sessionTimerSlider.ProgressChanged += (s, e) =>
+                    {
+                        this.sessionTimer = (int)(Math.Round(e.Progress / 5.0) * 5);
+                        sessionTimerSlider.Progress = this.sessionTimer;
+                        sessionTimerValueText.Text = this.sessionTimer == 0 ? "Duration: session timer not set" : $"Duration: {this.sessionTimer} minutes";
+                    };
+
+                    sessionTimerProgessBar.RemoveFromParent();
                 }
                 else
                 {
                     sessionTimerProgessBar.Progress = sessionTimerUsedPercent;
-                }
 
-                sessionTimerValueText.RemoveFromParent();
-                sessionTimerSlider.RemoveFromParent();
+                    sessionTimerText.Text = $"Your current session timer has {remainingMinutes} minutes and {remainingSeconds} seconds left";
+
+                    sessionTimerValueText.RemoveFromParent();
+                    sessionTimerSlider.RemoveFromParent();
+                }
             }
             // If there is no session timer, allow the user to set one with the slider
             else

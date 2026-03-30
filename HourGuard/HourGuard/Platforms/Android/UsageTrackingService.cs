@@ -299,7 +299,7 @@ namespace HourGuard.Platforms.Android
             double dailyTimeLimitMillis = dailyTimeLimit.TotalMilliseconds;
             popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
 
-            long sessionStartTimeMillis = sessionStartTime.ToUniversalTime().Millisecond;
+            long sessionStartTimeMillis = new DateTimeOffset(sessionStartTime).ToUnixTimeMilliseconds();
             popupIntent.PutExtra("sessionStartTime", sessionStartTimeMillis);
 
             double sessionTimeLimitMillis = sessionTimeLimit.TotalMilliseconds;
