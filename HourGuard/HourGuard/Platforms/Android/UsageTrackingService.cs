@@ -6,10 +6,11 @@ using Android.OS;
 using Android.Runtime;
 using Android.Util; // For Log
 using AndroidX.Core.App;
-using System.Linq; // Required for OrderByDescending and Any()
-using System.Threading;
+using AndroidX.Startup;
 using HourGuard.Database;
 using Microsoft;
+using System.Linq; // Required for OrderByDescending and Any()
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HourGuard.Platforms.Android
@@ -26,12 +27,15 @@ namespace HourGuard.Platforms.Android
         private bool wasCompliantToday = true; // Tracks whether the user has exceeded any limit today
         private long lastTimeWithUsage = Java.Lang.JavaSystem.CurrentTimeMillis();
         private DateTime lastRefreshDate;
+        private bool isInitialized = false; //Tracks if the service has been initialized to prevent multiple initializations if OnStartCommand is called multiple times before the service is destroyed
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const string TAG = "HourGuardService";
         private const string LAST_REFRESH_DATE_KEY = "LastRefreshDate";
         private const int NOTIFICATION_ID = 1001;
         private const int TICK_INTERVAL_SEC = 5;
+
+        public const string ACTION_REFRESH_TIMERS = "com.hourguard.action.REFRESH_TIMERS";
 
         public override IBinder OnBind(Intent intent)
         {
@@ -40,43 +44,48 @@ namespace HourGuard.Platforms.Android
 
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
-            Log.Debug(TAG, "Usage Tracking Service started.");
-
-            // Prepare to reset daily timers at midnight by storing the last refresh date
-            InitializeDailyTimerReset();
-
-            // Initialize appTimers from database settings
-            InitializeAppTimers();
-
-            // Create Notification Channel (Required for Android 8.0+)
-            CreateNotificationChannel();
-
-            // Create the persistent notification
-            var notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .SetContentTitle("Time Management Active")
-                .SetContentText("Monitoring app usage...")
-                .SetSmallIcon(Microsoft.Maui.Controls.Resource.Mipmap.appicon) // Use your app's icon
-                .SetOngoing(true)
-                .Build();
-
-            // Start the service in the foreground
-            // On API 34 (Target SDK 34), StartForeground MUST include the ForegroundServiceType.
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q) // Q is API 29, when this overload was introduced
+            if (!isInitialized)
             {
-                StartForeground(NOTIFICATION_ID, notification, ForegroundService.TypeDataSync);
+                Log.Debug(TAG, "Running initial HourGuard service startup");
+
+                // Prepare to reset daily timers at midnight by storing the last refresh date
+                InitializeDailyTimerReset();
+
+                // Initialize appTimers from database settings
+                InitializeAppTimers();
+
+                // Create Notification Channel (Required for Android 8.0+)
+                CreateNotificationChannel();
+
+                // Create the persistent notification
+                var notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                    .SetContentTitle("Time Management Active")
+                    .SetContentText("Monitoring app usage...")
+                    .SetSmallIcon(Microsoft.Maui.Controls.Resource.Mipmap.appicon)
+                    .SetOngoing(true)
+                    .Build();
+
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
+                {
+                    StartForeground(NOTIFICATION_ID, notification, ForegroundService.TypeDataSync);
+                }
+                else
+                {
+                    StartForeground(NOTIFICATION_ID, notification);
+                }
+
+                timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(TICK_INTERVAL_SEC).TotalMilliseconds);
+                Log.Debug(TAG, $"Timer started, checking every {TICK_INTERVAL_SEC * 1000}ms.");
+
+                isInitialized = true;
             }
-            else
+
+            if (intent?.Action == ACTION_REFRESH_TIMERS)
             {
-                // Fallback for older Android versions
-                StartForeground(NOTIFICATION_ID, notification);
+                Log.Debug(TAG, "Refreshing timers from DB");
+                InitializeAppTimers();
+                return StartCommandResult.Sticky;
             }
-
-
-            // Start the polling timer
-            // We check every 3 seconds. Adjust as needed for battery vs. responsiveness.
-            timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(TICK_INTERVAL_SEC).TotalMilliseconds);
-
-            Log.Debug(TAG, $"Timer started, checking every {TICK_INTERVAL_SEC * 1000}ms."); // NEW LOG
 
             // Return "Sticky" to ensure the service restarts if killed
             return StartCommandResult.Sticky;
@@ -248,12 +257,16 @@ namespace HourGuard.Platforms.Android
                         }
 
                         // Start a session timer if there is a limit set and one isn't already running
-                        TimeSpan sessonTimer = db.GetSessionTimer(currentForegroundApp).Result;
-                        if (sessonTimer != TimeSpan.Zero && sessionTimerStatus == HourGuardTimer.TIMER_NOT_RUNNING)
+                        if (sessionTimerStatus == HourGuardTimer.TIMER_NOT_RUNNING)
                         {
-                            Log.Debug(TAG, $"Starting session timer for {currentForegroundApp} for {sessonTimer.TotalMinutes} minutes.");
-                            appTimers[currentForegroundApp].StartSessionTimer(sessonTimer);
-                            db.SetSessionTimerAsync(currentForegroundApp, TimeSpan.Zero);
+                            TimeSpan sessonTimer = db.GetSessionTimer(currentForegroundApp).Result;
+
+                            if (sessonTimer != TimeSpan.Zero)
+                            {
+                                Log.Debug(TAG, $"Starting session timer for {currentForegroundApp} for {sessonTimer.TotalMinutes} minutes.");
+                                appTimers[currentForegroundApp].StartSessionTimer(sessonTimer);
+                                db.SetSessionTimerAsync(currentForegroundApp, TimeSpan.Zero);
+                            }
                         }
                     }
                 }
