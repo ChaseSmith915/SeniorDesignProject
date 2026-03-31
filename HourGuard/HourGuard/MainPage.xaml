@@ -28,21 +28,6 @@
                 VerticalTextAlignment="Center"/>
         </HorizontalStackLayout>
 
-        <!-- DEBUG: Remove before release -->
-        <HorizontalStackLayout
-            Grid.Row="1"
-            Padding="30,0,30,10"
-            Spacing="10">
-            <Button
-                x:Name="DebugIncrementStreakButton"
-                Text="DEBUG: +1 Streak"
-                FontSize="12" />
-            <Button
-                x:Name="DebugBreakStreakButton"
-                Text="DEBUG: Break Streak"
-                FontSize="12" />
-        </HorizontalStackLayout>
-
         <ScrollView
             Grid.Row="2">
             <VerticalStackLayout

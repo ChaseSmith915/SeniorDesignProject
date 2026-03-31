@@ -34,19 +34,6 @@ namespace HourGuard
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
-
-            // DEBUG: Remove before release
-            DebugIncrementStreakButton.Clicked += async (s, e) =>
-            {
-                await db.IncrementStreakAsync();
-                await LoadAndDisplayStreakAsync();
-            };
-
-            DebugBreakStreakButton.Clicked += async (s, e) =>
-            {
-                await db.BreakStreakAsync();
-                await LoadAndDisplayStreakAsync();
-            };
         }
 
         // Loads the current streak from the database and updates the UI label.
