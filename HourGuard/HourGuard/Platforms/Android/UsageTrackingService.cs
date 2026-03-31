@@ -131,9 +131,10 @@ namespace HourGuard.Platforms.Android
                         {
                             TimeSpan dailyLimit = appSetting.DailyTimeLimit;
                             TimeSpan sessionLimit = appSetting.SessionTimeLimit;
-                            TimeSpan dailyUsed = TimeSpan.FromMilliseconds(timerSnapshot.DailyElapsedMs);
+                            TimeSpan dailyUsed = timerSnapshot.DailyElapsed;
+                            DateTime sessionStartTime = timerSnapshot.SessionStartTime;
 
-                            appTimers[packageName] = new HourGuardTimer(dailyLimit, dailyUsed, sessionLimit);
+                            appTimers[packageName] = new HourGuardTimer(dailyLimit, dailyUsed, sessionLimit, sessionStartTime);
 
                             Log.Debug(TAG, $"Restored timer for {packageName} with {dailyUsed.TotalMinutes} minutes elapsed");
                         }
@@ -238,7 +239,14 @@ namespace HourGuard.Platforms.Android
                             Log.Debug(TAG, $"Session timer should run for {((sessionStartTime + sessionTimeLimit) - DateTime.UtcNow).TotalMinutes} more minutes, Session Status: {sessionTimerStatus}");
                         }
 
-                        if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                        if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED && sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                        {
+                            Log.Debug(TAG, $"Session and Daily time limit reached for {currentForegroundApp}. Showing popup.");
+
+                            appTimers[currentForegroundApp].StopSessionTimer();
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
+                        }
+                        else if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
                             ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
@@ -374,7 +382,8 @@ namespace HourGuard.Platforms.Android
                 {
                     PackageName = packageName,
                     Timestamp = DateTime.UtcNow,
-                    DailyElapsedMs = (long)timerData.GetDailyTimeUsed().TotalMilliseconds
+                    DailyElapsed = timerData.GetDailyTimeUsed(),
+                    SessionStartTime = timerData.GetSessionStartTime(),
                 };
                 db.SaveUsageStateAsync(snapshot).Wait();
             }
