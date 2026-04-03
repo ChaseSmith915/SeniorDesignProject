@@ -14,7 +14,7 @@ using Intent = Android.Content.Intent;
 
 namespace HourGuard
 {
-    [Activity(Label = "Confirm", Theme = "@style/DialogTheme")]
+    [Activity(Label = "Confirm", Theme = "@style/DialogTheme", TaskAffinity = "", ExcludeFromRecents = true)]
     public class DialogActivity : Activity
     {
         private readonly HourGuardDatabase hourGuardDatabase = App.Database;
