@@ -5,6 +5,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -28,7 +29,7 @@
         </HorizontalStackLayout>
 
         <ScrollView
-            Grid.Row="1">
+            Grid.Row="2">
             <VerticalStackLayout
                 x:Name="TargetAppsList"
                 Padding="10">
@@ -39,7 +40,7 @@
         </ScrollView>
 
         <Button
-            Grid.Row="2"
+            Grid.Row="3"
             x:Name="EnablePermissionsButton"
             Text="Enable Permissions"
             ToolTipProperties.Text="Notes: You must enable the Accessibility service for this app in Settings -> Accessibility."/>

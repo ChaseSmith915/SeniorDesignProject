@@ -6,10 +6,12 @@ using Android.OS;
 using Android.Runtime;
 using Android.Util; // For Log
 using AndroidX.Core.App;
-using System.Linq; // Required for OrderByDescending and Any()
-using System.Threading;
+using AndroidX.Startup;
 using HourGuard.Database;
 using Microsoft;
+using System.Linq; // Required for OrderByDescending and Any()
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HourGuard.Platforms.Android
 {
@@ -22,8 +24,10 @@ namespace HourGuard.Platforms.Android
 
         private Timer timer;
         private string lastForegroundApp = string.Empty;
+        private bool wasCompliantToday = true; // Tracks whether the user has exceeded any limit today
         private long lastTimeWithUsage = Java.Lang.JavaSystem.CurrentTimeMillis();
         private DateTime lastRefreshDate;
+        private bool isInitialized = false; //Tracks if the service has been initialized to prevent multiple initializations if OnStartCommand is called multiple times before the service is destroyed
         private int isCheckingForegroundApp = 0; // 0 = not running, 1 = running
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
@@ -32,6 +36,8 @@ namespace HourGuard.Platforms.Android
         private const int NOTIFICATION_ID = 1001;
         private const int TICK_INTERVAL_SEC = 1;
 
+        public const string ACTION_REFRESH_TIMERS = "com.hourguard.action.REFRESH_TIMERS";
+
         public override IBinder OnBind(Intent intent)
         {
             return null; // We are not using a bound service
@@ -39,43 +45,48 @@ namespace HourGuard.Platforms.Android
 
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
-            Log.Debug(TAG, "Usage Tracking Service started.");
-
-            // Prepare to reset daily timers at midnight by storing the last refresh date
-            InitializeDailyTimerReset();
-
-            // Initialize appTimers from database settings
-            InitializeAppTimers();
-
-            // Create Notification Channel (Required for Android 8.0+)
-            CreateNotificationChannel();
-
-            // Create the persistent notification
-            var notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .SetContentTitle("Time Management Active")
-                .SetContentText("Monitoring app usage...")
-                .SetSmallIcon(Microsoft.Maui.Controls.Resource.Mipmap.appicon) // Use your app's icon
-                .SetOngoing(true)
-                .Build();
-
-            // Start the service in the foreground
-            // On API 34 (Target SDK 34), StartForeground MUST include the ForegroundServiceType.
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q) // Q is API 29, when this overload was introduced
+            if (!isInitialized)
             {
-                StartForeground(NOTIFICATION_ID, notification, ForegroundService.TypeDataSync);
+                Log.Debug(TAG, "Running initial HourGuard service startup");
+
+                // Prepare to reset daily timers at midnight by storing the last refresh date
+                InitializeDailyTimerReset();
+
+                // Initialize appTimers from database settings
+                InitializeAppTimers();
+
+                // Create Notification Channel (Required for Android 8.0+)
+                CreateNotificationChannel();
+
+                // Create the persistent notification
+                var notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                    .SetContentTitle("Time Management Active")
+                    .SetContentText("Monitoring app usage...")
+                    .SetSmallIcon(Microsoft.Maui.Controls.Resource.Mipmap.appicon)
+                    .SetOngoing(true)
+                    .Build();
+
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
+                {
+                    StartForeground(NOTIFICATION_ID, notification, ForegroundService.TypeDataSync);
+                }
+                else
+                {
+                    StartForeground(NOTIFICATION_ID, notification);
+                }
+
+                timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(TICK_INTERVAL_SEC).TotalMilliseconds);
+                Log.Debug(TAG, $"Timer started, checking every {TICK_INTERVAL_SEC * 1000}ms.");
+
+                isInitialized = true;
             }
-            else
+
+            if (intent?.Action == ACTION_REFRESH_TIMERS)
             {
-                // Fallback for older Android versions
-                StartForeground(NOTIFICATION_ID, notification);
+                Log.Debug(TAG, "Refreshing timers from DB");
+                InitializeAppTimers();
+                return StartCommandResult.Sticky;
             }
-
-
-            // Start the polling timer
-            // We check every 3 seconds. Adjust as needed for battery vs. responsiveness.
-            timer = new Timer(CheckForegroundApp, null, 0, (int)TimeSpan.FromSeconds(TICK_INTERVAL_SEC).TotalMilliseconds);
-
-            Log.Debug(TAG, $"Timer started, checking every {TICK_INTERVAL_SEC * 1000}ms."); // NEW LOG
 
             // Return "Sticky" to ensure the service restarts if killed
             return StartCommandResult.Sticky;
@@ -115,15 +126,16 @@ namespace HourGuard.Platforms.Android
                 // If there is a snapshot in the database for this app
                 if (timerSnapshotsDict.TryGetValue(appSetting.PackageName, out TimerStatusSnapshots? timerSnapshot))
                 {
-                    if (timerSnapshot.Timestamp.Date == DateTime.Today)
+                    if (timerSnapshot.Timestamp.Date == DateTime.UtcNow.Date)
                     {
                         if (appSetting != null && appSetting.Enabled)
                         {
                             TimeSpan dailyLimit = appSetting.DailyTimeLimit;
                             TimeSpan sessionLimit = appSetting.SessionTimeLimit;
-                            TimeSpan dailyUsed = TimeSpan.FromMilliseconds(timerSnapshot.DailyElapsedMs);
+                            TimeSpan dailyUsed = timerSnapshot.DailyElapsed;
+                            DateTime sessionStartTime = timerSnapshot.SessionStartTime;
 
-                            appTimers[packageName] = new HourGuardTimer(dailyLimit, dailyUsed, sessionLimit);
+                            appTimers[packageName] = new HourGuardTimer(dailyLimit, dailyUsed, sessionLimit, sessionStartTime);
 
                             Log.Debug(TAG, $"Restored timer for {packageName} with {dailyUsed.TotalMinutes} minutes elapsed");
                         }
@@ -194,11 +206,18 @@ namespace HourGuard.Platforms.Android
                     // Show popup if a *new* app has come to the foreground, otherwise increment timer
                     if (currentForegroundApp != lastForegroundApp)
                     {
-                        Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup");
+                        Log.Debug(TAG, $"App changed: {currentForegroundApp}. Previous was: {lastForegroundApp}. Showing popup"); // Enhanced Log
 
                         lastForegroundApp = currentForegroundApp;
 
-                        ShowPopup(currentForegroundApp, appTimers[currentForegroundApp].GetDailyTimeUsed(), appTimers[currentForegroundApp].GetDailyTimeLimit());
+                        // App was opened! Show the popup.
+                        ShowPopup(
+                            currentForegroundApp,
+                            appTimers[currentForegroundApp].GetDailyTimeUsed(),
+                            appTimers[currentForegroundApp].GetDailyTimeLimit(),
+                            appTimers[currentForegroundApp].GetSessionStartTime(),
+                            appTimers[currentForegroundApp].GetSessionTimeLimit()
+                        );
                     }
                     else
                     {
@@ -214,21 +233,32 @@ namespace HourGuard.Platforms.Android
                         Log.Debug(TAG, $"Timer ticked for {currentForegroundApp}.");
 
                         if (dailyTimerStatus != HourGuardTimer.TIMER_NOT_RUNNING)
+                        {
                             Log.Debug(TAG, $"Daily time: {dailyTimeUsed.TotalMinutes}/{dailyTimeLimit.TotalMinutes} minutes, Daily Status: {dailyTimerStatus}");
+                        }
 
                         if (sessionTimerStatus != HourGuardTimer.TIMER_NOT_RUNNING)
+                        {
                             Log.Debug(TAG, $"Session timer should run for {((sessionStartTime + sessionTimeLimit) - DateTime.UtcNow).TotalMinutes} more minutes, Session Status: {sessionTimerStatus}");
+                        }
 
-                        if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                        if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED && sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
+                        {
+                            Log.Debug(TAG, $"Session and Daily time limit reached for {currentForegroundApp}. Showing popup.");
+
+                            appTimers[currentForegroundApp].StopSessionTimer();
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
+                        }
+                        else if (dailyTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Time limit reached for {currentForegroundApp}. Showing popup.");
-                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
                         }
                         else if (sessionTimerStatus == HourGuardTimer.TIMER_EXCEEDED)
                         {
                             Log.Debug(TAG, $"Session time limit reached for {currentForegroundApp}. Showing popup.");
                             appTimers[currentForegroundApp].StopSessionTimer();
-                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit);
+                            ShowPopup(currentForegroundApp, dailyTimeUsed, dailyTimeLimit, sessionStartTime, sessionTimeLimit);
                         }
                         else if (dailyTimerStatus == HourGuardTimer.TIMER_WARNING)
                         {
@@ -237,11 +267,16 @@ namespace HourGuard.Platforms.Android
                         }
 
                         // Start a session timer if there is a limit set and one isn't already running
-                        TimeSpan sessionTimer = db.GetSessionTimer(currentForegroundApp).Result;
-                        if (sessionTimer != TimeSpan.FromMilliseconds(0) && sessionTimerStatus == HourGuardTimer.TIMER_NOT_RUNNING)
+                        if (sessionTimerStatus == HourGuardTimer.TIMER_NOT_RUNNING)
                         {
-                            Log.Debug(TAG, $"Starting session timer for {currentForegroundApp} for {sessionTimer.TotalMinutes} minutes.");
-                            appTimers[currentForegroundApp].StartSessionTimer(sessionTimer);
+                            TimeSpan sessionTimer = db.GetSessionTimer(currentForegroundApp).Result;
+
+                            if (sessionTimer != TimeSpan.Zero)
+                            {
+                                Log.Debug(TAG, $"Starting session timer for {currentForegroundApp} for {sessionTimer.TotalMinutes} minutes.");
+                                appTimers[currentForegroundApp].StartSessionTimer(sessionTimer);
+                                db.SetSessionTimerAsync(currentForegroundApp, TimeSpan.Zero);
+                            }
                         }
                     }
                 }
@@ -274,11 +309,24 @@ namespace HourGuard.Platforms.Android
                 Preferences.Set(LAST_REFRESH_DATE_KEY, lastRefreshDate.ToString());
                 SaveUsageSnapshot();
 
-                // TODO: incriment streaks here too
+                // Increment streak if the user was compliant yesterday, otherwise break it
+                if (wasCompliantToday)
+                {
+                    Log.Debug(TAG, "User was compliant yesterday. Streak incremented.");
+                    db.IncrementStreakAsync().Wait();
+                }
+                else
+                {
+                    Log.Debug(TAG, "User was not compliant yesterday. Streak broken.");
+                    db.BreakStreakAsync().Wait();
+                }
+
+                // Reset compliance flag for the new day
+                wasCompliantToday = true;
             }
         }
 
-        private void ShowPopup(string appPackageName, TimeSpan dailyTimeUsed, TimeSpan dailyTimeLimit, int? streak = null)
+        private void ShowPopup(string appPackageName, TimeSpan dailyTimeUsed, TimeSpan dailyTimeLimit, DateTime sessionStartTime, TimeSpan sessionTimeLimit)
         {
             // We must start an Activity from a service context, so we add NEW_TASK flag
             Intent popupIntent = new Intent(this, typeof(DialogActivity));
@@ -291,7 +339,12 @@ namespace HourGuard.Platforms.Android
             double dailyTimeLimitMillis = dailyTimeLimit.TotalMilliseconds;
             popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
 
-            popupIntent.PutExtra("streak", streak ?? 0);
+            long sessionStartTimeMillis = new DateTimeOffset(sessionStartTime).ToUnixTimeMilliseconds();
+            popupIntent.PutExtra("sessionStartTime", sessionStartTimeMillis);
+
+            double sessionTimeLimitMillis = sessionTimeLimit.TotalMilliseconds;
+            popupIntent.PutExtra("sessionTimeLimit", sessionTimeLimitMillis);
+
             StartActivity(popupIntent);
         }
 
@@ -322,7 +375,7 @@ namespace HourGuard.Platforms.Android
             var notificationManager = (NotificationManager)GetSystemService(NotificationService);
             notificationManager.CreateNotificationChannel(channel);
         }
-        
+
         private void SaveUsageSnapshot()
         {
             foreach (var timer in appTimers)
@@ -334,7 +387,8 @@ namespace HourGuard.Platforms.Android
                 {
                     PackageName = packageName,
                     Timestamp = DateTime.UtcNow,
-                    DailyElapsedMs = (long) timerData.GetDailyTimeUsed().TotalMilliseconds
+                    DailyElapsed = timerData.GetDailyTimeUsed(),
+                    SessionStartTime = timerData.GetSessionStartTime(),
                 };
                 db.SaveUsageStateAsync(snapshot).Wait();
             }

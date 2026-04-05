@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Animations;
+﻿using Android.Content.PM;
+using Microsoft.Maui.Animations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
@@ -31,6 +32,24 @@ namespace HourGuard.Platforms.Android
         private DateTime sessionStartTime;
 
         // Constructors (Time limits <= 0 indicate no limit)
+        public HourGuardTimer(TimeSpan dailyTimeLimit, TimeSpan dailyTimeUsed, TimeSpan sessionTimeLimit, DateTime sessionStartTime)
+        {
+            this.dailyTimeLimit = dailyTimeLimit;
+            this.dailyTimeUsed = dailyTimeUsed;
+
+            // If the timer being fed in is already expired then don't start it
+            if (DateTime.UtcNow - sessionStartTime >= sessionTimeLimit)
+            {
+                this.sessionTimeLimit = TimeSpan.Zero;
+                this.sessionStartTime = DateTime.MinValue;
+            }
+            else
+            {
+                this.sessionTimeLimit = sessionTimeLimit;
+                this.sessionStartTime = sessionStartTime;
+            }
+        }
+
         public HourGuardTimer(TimeSpan dailyTimeLimit, TimeSpan dailyTimeUsed, TimeSpan sessionTimeLimit)
         {
             this.dailyTimeLimit = dailyTimeLimit;

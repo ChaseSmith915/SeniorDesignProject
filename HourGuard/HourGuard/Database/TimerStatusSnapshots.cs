@@ -17,6 +17,8 @@ namespace HourGuard.Database
 
         public long DailyElapsedMs { get; set; }
 
+        public long SessionStartTimeMs { get; set; }
+
         [Ignore]
         public DateTime Timestamp
         {
@@ -29,6 +31,13 @@ namespace HourGuard.Database
         {
             get => TimeSpan.FromMilliseconds(DailyElapsedMs);
             set => DailyElapsedMs = (long)value.TotalMilliseconds;
+        }
+
+        [Ignore]
+        public DateTime SessionStartTime
+        {
+            get => DateTimeOffset.FromUnixTimeMilliseconds(SessionStartTimeMs).UtcDateTime;
+            set => SessionStartTimeMs = new DateTimeOffset(value.ToUniversalTime()).ToUnixTimeMilliseconds();
         }
     }
 }

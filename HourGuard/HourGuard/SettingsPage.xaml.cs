@@ -1,6 +1,8 @@
+using Android.Content;
 using Android.Content.PM;
 using Android.Util;
 using HourGuard.Database;
+using HourGuard.Platforms.Android;
 
 namespace HourGuard
 {
@@ -191,6 +193,11 @@ namespace HourGuard
                 };
 
                 db.SaveSettingAsync(newSettings);
+
+                var intent = new Intent(Android.App.Application.Context, typeof(UsageTrackingService));
+                intent.SetAction(UsageTrackingService.ACTION_REFRESH_TIMERS);
+
+                Android.App.Application.Context.StartService(intent);
             }
             else
             {

@@ -1,13 +1,12 @@
 ﻿using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
+using Android.Graphics;
 using Android.Graphics.Drawables;
+using HourGuard.Database;
+using HourGuard.Platforms.Android;
 using Microsoft.Maui.Dispatching;
 using System.Collections.ObjectModel;
-
-using Android.Graphics;
-
-using HourGuard.Database;
 
 namespace HourGuard
 {
@@ -102,6 +101,11 @@ namespace HourGuard
         private void TargetNewApp(AppItem item)
         {
             db.SaveSettingAsync(new AppSettings{PackageName = item.PackageName, Enabled = true, DailyTimeLimit = TimeSpan.FromMinutes(10)}).Wait();
+
+            var intent = new Intent(Android.App.Application.Context, typeof(UsageTrackingService));
+            intent.SetAction(UsageTrackingService.ACTION_REFRESH_TIMERS);
+            Android.App.Application.Context.StartService(intent);
+
             this.mainPage.AddTargetedApp(item.Name, item.PackageName);
 
             Navigation.PopAsync();
