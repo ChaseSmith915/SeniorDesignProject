@@ -102,14 +102,16 @@ namespace HourGuard.Platforms.Android
 
         private void InitializeDailyTimerReset()
         {
+            DateTime todayDate = DateTime.Now.Date;
+
             if (!Preferences.ContainsKey(LAST_REFRESH_DATE_KEY))
             {
-                Preferences.Set(LAST_REFRESH_DATE_KEY, DateTime.UtcNow.Date.ToString());
-                lastRefreshDate = DateTime.UtcNow.Date;
+                Preferences.Set(LAST_REFRESH_DATE_KEY, todayDate.ToString());
+                lastRefreshDate = todayDate;
             }
             else
             {
-                lastRefreshDate = DateTime.Parse(Preferences.Get(LAST_REFRESH_DATE_KEY, DateTime.UtcNow.Date.ToString()));
+                lastRefreshDate = DateTime.Parse(Preferences.Get(LAST_REFRESH_DATE_KEY, todayDate.ToString()));
             }
         }
 
@@ -297,7 +299,7 @@ namespace HourGuard.Platforms.Android
 
         private void ResetDailyTimersIfNeeded()
         {
-            DateTime today = DateTime.UtcNow.Date;
+            DateTime today = DateTime.Now.Date;
             if (today > lastRefreshDate)
             {
                 Log.Debug(TAG, "New day detected. Resetting daily timers.");
