@@ -143,6 +143,15 @@ namespace HourGuard
                 Padding = 10
             };
 
+            // Info Label
+            Label infoLabel = new Label
+            {
+                FontSize = 12,
+                Text = $"(A daily limit of 0 disables the daily limit)",
+                VerticalTextAlignment = TextAlignment.Center,
+                Padding = 2
+            };
+
             // Switch that enables/disables monitoring for this app
             this.dailyTimeLimitEntry = new Entry
             {
@@ -185,6 +194,15 @@ namespace HourGuard
         {
             if (double.TryParse(this.dailyTimeLimitEntry.Text, out double newLimit))
             {
+                if (newLimit > 1440)
+                {
+                    newLimit = 1440; // prevents daily limit being longer than one day
+                }
+                else if (newLimit < 0)
+                {
+                    newLimit = 0; // prevents daily limit being less than 0
+                }
+                
                 AppSettings newSettings = new AppSettings
                 {
                     PackageName = this.packageName,
