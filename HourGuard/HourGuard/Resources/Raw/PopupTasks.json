@@ -212,8 +212,8 @@
     "difficulty": "hard"
   },
   {
-    "question": "What is the value of Pi to two decimal places?",
-    "correctAnswer": "3.14",
+    "question": "What number can be rounded to 3.14159...?",
+    "correctAnswer": "Pi",
     "difficulty": "hard"
   },
   {
