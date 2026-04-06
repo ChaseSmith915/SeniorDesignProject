@@ -25,10 +25,11 @@ namespace HourGuard.Platforms.Android
         private Timer timer;
         private string lastForegroundApp = string.Empty;
         private bool wasCompliantToday = true; // Tracks whether the user has exceeded any limit today
-        private long lastTimeWithUsage = Java.Lang.JavaSystem.CurrentTimeMillis();
         private DateTime lastRefreshDate;
         private bool isInitialized = false; //Tracks if the service has been initialized to prevent multiple initializations if OnStartCommand is called multiple times before the service is destroyed
+        
         private int isCheckingForegroundApp = 0; // 0 = not running, 1 = running
+        private int isPopupOpen = 0; // 0 = popup not open, 1 = popup open
 
         private const string NOTIFICATION_CHANNEL_ID = "UsageTrackingServiceChannel";
         private const string TAG = "HourGuardService";
@@ -36,7 +37,9 @@ namespace HourGuard.Platforms.Android
         private const int NOTIFICATION_ID = 1001;
         private const int TICK_INTERVAL_SEC = 1;
 
+        // Constants representing actions that can be sent to the service via Intents (This lets the service be modified without being restarted)
         public const string ACTION_REFRESH_TIMERS = "com.hourguard.action.REFRESH_TIMERS";
+        public const string ACTION_POPUP_CLOSED = "com.hourguard.action.POPUP_CLOSED";
 
         public override IBinder OnBind(Intent intent)
         {
@@ -85,6 +88,13 @@ namespace HourGuard.Platforms.Android
             {
                 Log.Debug(TAG, "Refreshing timers from DB");
                 InitializeAppTimers();
+                return StartCommandResult.Sticky;
+            }
+
+            if (intent?.Action == ACTION_POPUP_CLOSED)
+            {
+                Log.Debug(TAG, "Popup closed, resuming tracking");
+                Interlocked.Exchange(ref isPopupOpen, 0);
                 return StartCommandResult.Sticky;
             }
 
@@ -159,13 +169,21 @@ namespace HourGuard.Platforms.Android
 
         private void CheckForegroundApp(object state)
         {
+            // Prevent overlapping executions of this method if the previous execution is still running
             if (Interlocked.CompareExchange(ref isCheckingForegroundApp, 1, 0) == 1)
             {
-                Log.Debug(TAG, "Skipping tick — previous check still running.");
+                Log.Debug(TAG, "Skipping tick, previous check still running.");
                 return;
             }
             try
             {
+                // Checks if the popup is open and skipps the timer tick if so
+                if (Volatile.Read(ref isPopupOpen) == 1)
+                {
+                    Log.Debug(TAG, "Skipping tick, popup is still open.");
+                    return;
+                }
+
                 Log.Debug(TAG, "TIMER TICK: Executing CheckForegroundApp.");
 
                 ResetDailyTimersIfNeeded();
@@ -330,24 +348,37 @@ namespace HourGuard.Platforms.Android
 
         private void ShowPopup(string appPackageName, TimeSpan dailyTimeUsed, TimeSpan dailyTimeLimit, DateTime sessionStartTime, TimeSpan sessionTimeLimit)
         {
-            // We must start an Activity from a service context, so we add NEW_TASK flag
-            Intent popupIntent = new Intent(this, typeof(DialogActivity));
-            popupIntent.AddFlags(ActivityFlags.NewTask);
-            popupIntent.PutExtra("appPackageName", appPackageName);
+            // As soon as this gets called, lock down the popup state so that no other popups can be opened until this one is closed
+            Interlocked.Exchange(ref isPopupOpen, 1);
 
-            double dailyTimeUsedMillis = dailyTimeUsed.TotalMilliseconds;
-            popupIntent.PutExtra("dailyTimeUsed", dailyTimeUsedMillis);
+            try
+            {
+                // We must start an Activity from a service context, so we add NEW_TASK flag
+                Intent popupIntent = new Intent(this, typeof(DialogActivity));
+                popupIntent.AddFlags(ActivityFlags.NewTask);
+                
+                popupIntent.PutExtra("appPackageName", appPackageName);
 
-            double dailyTimeLimitMillis = dailyTimeLimit.TotalMilliseconds;
-            popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
+                double dailyTimeUsedMillis = dailyTimeUsed.TotalMilliseconds;
+                popupIntent.PutExtra("dailyTimeUsed", dailyTimeUsedMillis);
 
-            long sessionStartTimeMillis = new DateTimeOffset(sessionStartTime).ToUnixTimeMilliseconds();
-            popupIntent.PutExtra("sessionStartTime", sessionStartTimeMillis);
+                double dailyTimeLimitMillis = dailyTimeLimit.TotalMilliseconds;
+                popupIntent.PutExtra("dailyTimeLimit", dailyTimeLimitMillis);
 
-            double sessionTimeLimitMillis = sessionTimeLimit.TotalMilliseconds;
-            popupIntent.PutExtra("sessionTimeLimit", sessionTimeLimitMillis);
+                long sessionStartTimeMillis = new DateTimeOffset(sessionStartTime).ToUnixTimeMilliseconds();
+                popupIntent.PutExtra("sessionStartTime", sessionStartTimeMillis);
 
-            StartActivity(popupIntent);
+                double sessionTimeLimitMillis = sessionTimeLimit.TotalMilliseconds;
+                popupIntent.PutExtra("sessionTimeLimit", sessionTimeLimitMillis);
+
+                StartActivity(popupIntent);
+            }
+            catch (Exception e)
+            {
+                Log.Error(TAG, $"Error showing popup: {e.Message}");
+                // If there was an error showing the popup, we should still allow future popups to be shown
+                Interlocked.Exchange(ref isPopupOpen, 0);
+            }
         }
 
 
@@ -355,7 +386,9 @@ namespace HourGuard.Platforms.Android
         {
             Intent popupIntent = new Intent(this, typeof(TimeWarningPopup));
             popupIntent.AddFlags(ActivityFlags.NewTask);
+
             popupIntent.PutExtra("appPackageName", appPackageName);
+
             StartActivity(popupIntent);
         }
 

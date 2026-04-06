@@ -5,6 +5,7 @@ using Android.OS;
 using Android.Util;
 using Android.Widget;
 using HourGuard.Database;
+using HourGuard.Platforms.Android;
 using Javax.Security.Auth;
 using Kotlin.IO.Encoding;
 using Microsoft.Maui.Platform;
@@ -327,6 +328,16 @@ namespace HourGuard
             intent.SetFlags(ActivityFlags.NewTask);
             StartActivity(intent);
             FinishAndRemoveTask();
+        }
+
+        public override void FinishAndRemoveTask()
+        {
+            // Tell the service the popup is closed
+            var intent = new Intent(this, typeof(UsageTrackingService));
+            intent.SetAction(UsageTrackingService.ACTION_POPUP_CLOSED);
+            StartService(intent);
+
+            base.FinishAndRemoveTask();
         }
     }
 }
