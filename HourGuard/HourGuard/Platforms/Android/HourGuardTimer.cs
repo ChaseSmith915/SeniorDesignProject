@@ -164,10 +164,15 @@ namespace HourGuard.Platforms.Android
                         dailyStatus = TIMER_EXCEEDED;
                     }
                 }
-                else if (dailyTimeLimit - dailyTimeUsed <= WARN_DURATION && !dailyWarningIssued)
+                // Only issue warnings if the daily limit is more than double the warning duration, otherwise it just doesn't make sense
+                else if (dailyTimeLimit > WARN_DURATION * 2)
                 {
-                    dailyStatus = TIMER_WARNING;
-                    dailyWarningIssued = true;
+                    // If the daily time limit makes sense to issue a warning and there is less time remaining than the warning duration and a warning hasn't already been issued, issue a warning
+                    if (dailyTimeLimit - dailyTimeUsed <= WARN_DURATION && !dailyWarningIssued)
+                    {
+                        dailyStatus = TIMER_WARNING;
+                        dailyWarningIssued = true;
+                    }
                 }
             }
             else
