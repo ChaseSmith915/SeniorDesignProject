@@ -31,7 +31,8 @@ namespace HourGuard.Database
                 FileSystem.AppDataDirectory,
                 "appsettings.db");
 
-            db = new SQLiteAsyncConnection(path);
+            var options = new SQLiteConnectionString(path, true, key: "SuperSecurePassword");
+            db = new SQLiteAsyncConnection(options);
 
             // Create tables if they doesn't exist
             db.CreateTableAsync<AppSettings>().Wait();
