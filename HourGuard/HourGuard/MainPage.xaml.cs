@@ -18,11 +18,10 @@ namespace HourGuard
         public MainPage()
         {
             InitializeComponent();
-            GetTargetedApps();
-
-            // Load and display the user's current global streak
-            _ = LoadAndDisplayStreakAsync();
-
+            db.StreakChanged += async () =>
+            {
+                await LoadAndDisplayStreakAsync();
+            };
             // Navigate to permissions setup page
             EnablePermissionsButton.Clicked += (s, e) =>
             {
@@ -34,6 +33,15 @@ namespace HourGuard
             {
                 Navigation.PushAsync(new TargetApps(this));
             };
+        }
+
+        // This is called even if the app is opened without it being closed (e.g. user goes to home screen and then back to the app)
+        // I moved GetTargetedApps here so that the list of targeted apps will update, and LoadAndDisplayStreakAsync so that the streak will update (e.g. if user breaks their streak and then goes back to the app, they will see the updated streak)
+        protected override void OnAppearing()
+        {
+            GetTargetedApps();
+            // Load and display the user's current global streak
+            _ = LoadAndDisplayStreakAsync();
         }
 
         // Loads the current streak from the database and updates the UI label.

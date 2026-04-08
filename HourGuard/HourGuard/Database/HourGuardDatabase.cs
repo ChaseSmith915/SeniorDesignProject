@@ -40,6 +40,9 @@ namespace HourGuard.Database
             db.CreateTableAsync<GlobalStreak>().Wait();
         }
 
+        //Fires when streak is incremented or broken
+        public event Action StreakChanged;
+
         // ─────────────────────────────
         // App settings (configuration)
         // ─────────────────────────────
@@ -158,6 +161,7 @@ namespace HourGuard.Database
             var streak = await GetStreakAsync();
             streak.CurrentStreak++;
             await db.InsertOrReplaceAsync(streak);
+            StreakChanged?.Invoke();
         }
 
         // Resets the streak back to 0.
@@ -166,6 +170,7 @@ namespace HourGuard.Database
             var streak = await GetStreakAsync();
             streak.CurrentStreak = -1;
             await db.InsertOrReplaceAsync(streak);
+            StreakChanged?.Invoke();
         }
     }
 }
